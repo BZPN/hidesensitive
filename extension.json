@@ -1,0 +1,70 @@
+{
+	"name": "HideSensitive",
+	"version": "1.0.0",
+	"author": "BZPN",
+	"url": "https://www.mediawiki.org/wiki/Extension:HideSensitive",
+	"descriptionmsg": "hidesensitive-desc",
+	"license-name": "GPL-2.0-or-later",
+	"type": "other",
+	"manifest_version": 2,
+	"requires": {
+		"MediaWiki": ">= 1.35.0"
+	},
+	"MessagesDirs": {
+		"HideSensitive": [
+			"i18n"
+		]
+	},
+	"AutoloadNamespaces": {
+		"MediaWiki\\Extension\\HideSensitive\\": "src/"
+	},
+	"Config": {
+		"SensitiveContentAllowedGroup": {
+			"value": []
+		},
+		"SensitiveDefaultDescription": {
+			"value": "This content has been marked as sensitive."
+		},
+		"SensitiveButtonText": {
+			"value": "Show"
+		},
+		"SensitiveButtonColor": {
+			"value": "#36c"
+		},
+		"SensitiveAllowedUsers": {
+			"value": []
+		},
+		"SensitiveAllowedNamespaces": {
+			"value": []
+		}
+	},
+	"Hooks": {
+		"ThumbnailBeforeProduceHTML": "MediaWiki\\Extension\\HideSensitive\\Hooks::onThumbnailBeforeProduceHTML",
+		"ImageOpenShowImageInlineBefore": "MediaWiki\\Extension\\HideSensitive\\Hooks::onImageOpenShowImageInlineBefore",
+		"BeforePageDisplay": "MediaWiki\\Extension\\HideSensitive\\Hooks::onBeforePageDisplay",
+		"ResourceLoaderGetConfigVars": "MediaWiki\\Extension\\HideSensitive\\Hooks::onResourceLoaderGetConfigVars"
+	},
+	"ResourceModules": {
+		"ext.hideSensitive.core": {
+			"class": "ResourceLoader\\FileModule",
+			"scripts": [
+				"resources/ext.hideSensitive.core.js"
+			],
+			"styles": [
+				"resources/ext.hideSensitive.core.css"
+			],
+			"messages": [
+				"hidesensitive-default-description",
+				"hidesensitive-button-text"
+			],
+			"dependencies": [
+				"mediawiki.util",
+				"mediawiki.api"
+			]
+		}
+	},
+	"ResourceFileModulePaths": {
+		"localBasePath": "",
+		"remoteExtPath": "HideSensitive"
+	}
+}

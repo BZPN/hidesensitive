@@ -1,0 +1,47 @@
+
+.sensitive-content-overlay-wrapper {
+	display: inline-block;
+	position: relative;
+}
+
+.sensitive-content-overlay {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    text-align: center;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.sensitive-content-icon {
+    width: 40px;
+    height: 40px;
+    background-image: url(icon.png);
+    background-repeat: no-repeat;
+    background-size: contain;
+    margin-bottom: 10px;
+    /* The line-through decoration is not ideal for an icon, so it's removed */
+}
+
+.sensitive-content-text {
+    font-size: 14px;
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.sensitive-content-button {
+    padding: 8px 15px;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 14px;
+    border-radius: 3px;
+}
+
+/* Initially hide the image inside the link */
+a[data-sensitive='true'] .thumbimage {
+    display: none;
+}

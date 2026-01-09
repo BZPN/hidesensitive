@@ -1,0 +1,11 @@
+
+{
+	"@metadata": {
+		"authors": [
+			"BZPN"
+		]
+	},
+	"hidesensitive-desc": "Hides sensitive media behind a confirmation overlay.",
+	"hidesensitive-default-description": "This content has been marked as sensitive.",
+	"hidesensitive-button-text": "Show"
+}
