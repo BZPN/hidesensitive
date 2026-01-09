@@ -12,6 +12,8 @@ use MediaWiki\User\User;
 use OutputPage;
 use Skin;
 use MediaWiki\MediaWikiServices;
+use ImagePage;
+use Parser;
 
 class Hooks implements
 	ThumbnailBeforeProduceHTMLHook,
@@ -58,7 +60,7 @@ class Hooks implements
 		}
 		
 		$config = RequestContext::getMain()->getConfig();
-		$description = $params['description'] ?? $config->get( 'SensitiveDefaultDescription' );
+		$description = $params['alt'] ?? $params['description'] ?? $config->get( 'SensitiveDefaultDescription' );
 
 		$linkAttribs['data-sensitive'] = 'true';
 		$linkAttribs['data-width'] = $thumbnail->getWidth();
@@ -66,40 +68,60 @@ class Hooks implements
 		$linkAttribs['data-description'] = $description;
 	}
 
-	public function onImageOpenShowImageInlineBefore(
-		$title, $file, &$frameParams, &$handlerParams, &$time, &$res, $parser, $parserOutput
-	) {
+	/**
+	 * @param Parser &$parser
+	 * @param Title $title
+	 * @param \File $file
+	 * @param array &$frameParams
+	 * @param array &$handlerParams
+	 * @param int &$time
+	 * @param string &$res
+	 * @return bool
+	 */
+	public function onImageBeforeProduceHTML( &$parser, $title, $file, &$frameParams, &$handlerParams, &$time, &$res ) {
 		if ( !self::isSensitive( $frameParams ) ) {
 			return true;
 		}
 		
-		if ( self::shouldBypass( RequestContext::getMain()->getUser(), $title ) ) {
+		if ( self::shouldBypass( $parser->getUser(), $title ) ) {
 			return true;
 		}
 
 		$res = self::getOverlayHTML( $frameParams );
-		// Add the core module to ensure JS/CSS is loaded for this element.
-		$parserOutput->addModules( 'ext.hideSensitive.core' );
+		$parser->getOutput()->addModules( 'ext.hideSensitive.core' );
 		return false; // Prevent default rendering
 	}
 
-	public function onBeforePageDisplay( $out, $skin ): void {
-		$title = $out->getTitle();
-		$user = $out->getUser();
-
-		// Check for sensitive thumbnails or videos on any page
-		$out->addModules( 'ext.hideSensitive.core' );
-
-		// Specific logic for File: pages
-		if ( $title && $title->inNamespace( NS_FILE ) ) {
-			if ( self::shouldBypass( $user, $title ) ) {
-				return; // Don't hide for privileged users
-			}
-			
-			if ( self::isSensitiveFilePage( $title ) ) {
-				$out->addJsConfigVars( 'wgIsSensitiveFilePage', true );
-			}
+	/**
+	 * @param ImagePage $imagepage
+	 * @param OutputPage $out
+	 * @return bool
+	 */
+	public function onImageOpenShowImageInlineBefore( $imagepage, $out ): bool {
+		$title = $imagepage->getTitle();
+		if ( self::shouldBypass( $out->getUser(), $title ) ) {
+			return true;
 		}
+
+		if ( self::isSensitiveFilePage( $title ) ) {
+			// A better approach might be to add the overlay HTML directly here.
+			$out->clearHTML();
+			$overlay = self::getOverlayHTML( [ 
+				'width' => $imagepage->getFile()->getWidth(), 
+				'height' => $imagepage->getFile()->getHeight(),
+				'description' => 'This file has been marked as sensitive.' // TODO: make this configurable
+			] );
+			$out->addHTML( $overlay );
+			return false;
+		}
+		
+		return true;
+	}
+
+	public function onBeforePageDisplay( $out, $skin ): void {
+		// This hook adds the core CSS/JS to all pages, as sensitive content
+		// can appear on any page.
+		$out->addModules( 'ext.hideSensitive.core' );
 	}
 
 	public function onResourceLoaderGetConfigVars( array &$vars, $skin, \Config $config ): void {

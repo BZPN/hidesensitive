@@ -44,58 +44,12 @@
 		} );
 	}
 
-	function initFilePage() {
-		if ( mw.config.get( 'wgIsSensitiveFilePage' ) ) {
-			const $file = $( '#file' );
-			if ( $file.length > 0 && $file.find( '.sensitive-content-overlay-wrapper' ).length === 0 ) {
-				const overlayHTML = getOverlayHTML( null ); // No link, so use default description
-				const $overlay = $( overlayHTML );
-				const $img = $file.find( 'a > img' );
-				
-				if ($img.length > 0) {
-					$overlay.find( '.sensitive-content-overlay' ).css( { 
-						width: $img.width(), 
-						height: $img.height(),
-						position: 'absolute',
-						top: 0,
-						left: 0
-					} );
-					$img.css('display', 'none');
-					$file.find('a').prepend($overlay);
-				}
-			}
-		}
-	}
-	
-	// --- Event Delegation for all "Show" buttons ---
-	// This handles thumbnails, videos, and file pages in one go.
-	$( document ).on( 'click', '.sensitive-content-button', function ( e ) {
-		e.preventDefault();
-		e.stopPropagation();
-		const $wrapper = $( this ).closest( '.sensitive-content-overlay-wrapper' );
-		const $container = $wrapper.parent();
-		
-		// For thumbnails and file pages, we unhide the image
-		$container.find( '.thumbimage, #file img' ).css( 'display', 'block' );
-
-		// For videos, there's no hidden element, we need to replace the overlay
-		// This part is complex and would require loading the video player dynamically.
-		// For now, we just remove the overlay. A full implementation would use mw.loader.load
-		// to get the video player modules and re-render.
-		
-		$wrapper.remove();
-	});
-
-
 	// --- Hooks and Initialization ---
 
 	// For standard page loads and dynamic content (like VisualEditor)
 	mw.hook( 'wikipage.content' ).add( function ( content ) {
 		initThumbnails( content );
 	} );
-
-	// Run on DOM ready for file pages
-	$( initFilePage );
 
 	// --- MultimediaViewer Integration ---
 	let currentViewer = null;

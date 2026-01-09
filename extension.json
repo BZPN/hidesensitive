@@ -40,6 +40,7 @@
 	},
 	"Hooks": {
 		"ThumbnailBeforeProduceHTML": "MediaWiki\\Extension\\HideSensitive\\Hooks::onThumbnailBeforeProduceHTML",
+		"ImageBeforeProduceHTML": "MediaWiki\\Extension\\HideSensitive\\Hooks::onImageBeforeProduceHTML",
 		"ImageOpenShowImageInlineBefore": "MediaWiki\\Extension\\HideSensitive\\Hooks::onImageOpenShowImageInlineBefore",
 		"BeforePageDisplay": "MediaWiki\\Extension\\HideSensitive\\Hooks::onBeforePageDisplay",
 		"ResourceLoaderGetConfigVars": "MediaWiki\\Extension\\HideSensitive\\Hooks::onResourceLoaderGetConfigVars"
