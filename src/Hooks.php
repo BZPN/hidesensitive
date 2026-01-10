@@ -3,11 +3,6 @@
 namespace MediaWiki\Extension\HideSensitive;
 
 use MediaWiki\Context\RequestContext;
-use MediaWiki\Hook\ThumbnailBeforeProduceHTMLHook;
-use MediaWiki\Hook\ImageOpenShowImageInlineBeforeHook;
-use MediaWiki\Hook\BeforePageDisplayHook;
-use MediaWiki\Hook\ResourceLoaderGetConfigVarsHook;
-use MediaWiki\Hook\ImageBeforeProduceHTMLHook;
 use MediaWiki\Title\Title;
 use MediaWiki\User\User;
 use MediaWiki\Output\OutputPage;
@@ -18,12 +13,7 @@ use ImagePage;
 use MediaWiki\Parser\Parser;
 use MediaWiki\Media\ThumbnailImage;
 
-class Hooks implements
-	ThumbnailBeforeProduceHTMLHook,
-	ImageOpenShowImageInlineBeforeHook,
-	BeforePageDisplayHook,
-	ResourceLoaderGetConfigVarsHook,
-	ImageBeforeProduceHTMLHook
+class Hooks
 {
 	private static function isSensitive( array $params, Title $title = null ): bool {
 		if ( isset( $params['sensitive'] ) && $params['sensitive'] === 'true' ) {
@@ -63,7 +53,7 @@ class Hooks implements
 	 * @param array &$attribs
 	 * @param array &$linkAttribs
 	 */
-	public function onThumbnailBeforeProduceHTML( $thumbnail, &$attribs, &$linkAttribs ): void {
+	public static function onThumbnailBeforeProduceHTML( ThumbnailImage $thumbnail, array &$attribs, array &$linkAttribs ) {
 		$file = $thumbnail->getFile();
 		$title = $file ? $file->getTitle() : null;
 
@@ -98,7 +88,7 @@ class Hooks implements
 	 * @param string &$res
 	 * @return bool
 	 */
-	public function onImageBeforeProduceHTML( $parser, $title, $file, &$frameParams, &$handlerParams, &$time, &$res ) {
+	public static function onImageBeforeProduceHTML( $parser, $title, $file, &$frameParams, &$handlerParams, &$time, &$res ) {
 		if ( self::isSensitive( $frameParams, $title ) ) {
 			if ( !self::shouldBypass( $parser->getUser(), $title ) ) {
 				$handlerParams['sensitive'] = 'true';
@@ -117,7 +107,7 @@ class Hooks implements
 	 * @param OutputPage $out
 	 * @return bool
 	 */
-	public function onImageOpenShowImageInlineBefore( $imagepage, $out ): bool {
+	public static function onImageOpenShowImageInlineBefore( $imagepage, $out ) {
 		$title = $imagepage->getTitle();
 		if ( self::shouldBypass( $out->getUser(), $title ) ) {
 			return true;
@@ -142,7 +132,7 @@ class Hooks implements
 	 * @param OutputPage $out
 	 * @param Skin $skin
 	 */
-	public function onBeforePageDisplay( $out, $skin ): void {
+	public static function onBeforePageDisplay( OutputPage $out, Skin $skin ) {
 		$out->addModules( 'ext.hideSensitive.core' );
 	}
 
@@ -151,7 +141,7 @@ class Hooks implements
 	 * @param string $skin
 	 * @param Config $config
 	 */
-	public function onResourceLoaderGetConfigVars( array &$vars, $skin, Config $config ): void {
+	public static function onResourceLoaderGetConfigVars( array &$vars, string $skin, Config $config ) {
 		$vars['wgSensitiveContent'] = [
 			'buttonColor' => $config->get( 'SensitiveButtonColor' ),
 		];
