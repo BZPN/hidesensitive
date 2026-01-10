@@ -150,17 +150,22 @@ class Hooks {
 	}
 
 	private static function shouldBypass( User $user, Title $title ): bool {
-		$config = RequestContext::getMain()->getConfig();
+		$services = MediaWikiServices::getInstance();
+		$config = $services->getMainConfig();
 
 		try {
 			$allowedGroups = $config->get( 'SensitiveContentAllowedGroup' );
-			if ( is_array( $allowedGroups ) && !empty( array_intersect( $user->getEffectiveGroups(), $allowedGroups ) ) ) {
-				return true;
+			if ( !is_array( $allowedGroups ) || $allowedGroups === [] ) {
+				return false;
 			}
-		} catch ( \ConfigException $e ) {
-			// group not set
-		}
 
-		return false;
+			$groupManager = $services->getUserGroupManager();
+			$userGroups = $groupManager->getUserEffectiveGroups( $user );
+
+			return (bool)array_intersect( $userGroups, $allowedGroups );
+
+		} catch ( \ConfigException $e ) {
+			return false;
+		}
 	}
 }
