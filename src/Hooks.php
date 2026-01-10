@@ -11,8 +11,6 @@ use Skin;
 use MediaWiki\MediaWikiServices;
 use ImagePage;
 use MediaWiki\Parser\Parser;
-use MediaWiki\Media\ThumbnailImage;
-
 class Hooks
 {
 	private static function isSensitive( array $params, Title $title = null ): bool {
@@ -49,11 +47,11 @@ class Hooks
 	}
 
 	/**
-	 * @param ThumbnailImage $thumbnail
+	 * @param \MediaWiki\Media\ThumbnailImage $thumbnail
 	 * @param array &$attribs
 	 * @param array &$linkAttribs
 	 */
-	public static function onThumbnailBeforeProduceHTML( ThumbnailImage $thumbnail, array &$attribs, array &$linkAttribs ) {
+	public static function onThumbnailBeforeProduceHTML( \MediaWiki\Media\ThumbnailImage $thumbnail, array &$attribs, array &$linkAttribs ) {
 		$file = $thumbnail->getFile();
 		$title = $file ? $file->getTitle() : null;
 
@@ -186,4 +184,5 @@ class Hooks
 			'</div></div>';
 	}
 }
+
 

@@ -47,7 +47,7 @@
 	},
 	"ResourceModules": {
 		"ext.hideSensitive.core": {
-			"class": "ResourceLoader\\FileModule",
+			"class": "MediaWiki\\ResourceLoader\\FileModule",
 			"scripts": [
 				"resources/ext.hideSensitive.core.js"
 			],
