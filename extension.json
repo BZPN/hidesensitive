@@ -19,18 +19,10 @@
 		"MediaWiki\\Extension\\HideSensitive\\": "src/"
 	},
     "ConfigRegistry": {
-        "SensitiveInfoPage": {
-            "value": "Help:Sensitive_content"
-        },
-        "SensitiveButtonText": {
-            "value": ""
-        },
-        "SensitiveButtonColor": {
-            "value": "#36c"
-        },
-        "SensitiveContentAllowedGroup": {
-            "value": []
-        }
+        "SensitiveInfoPage": "Help:Sensitive_content",
+        "SensitiveButtonText": "",
+        "SensitiveButtonColor": "#36c",
+        "SensitiveContentAllowedGroup": []
     },
 
 	"Hooks": {
