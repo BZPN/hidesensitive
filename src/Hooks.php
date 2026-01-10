@@ -86,11 +86,11 @@ class Hooks {
 			return;
 		}
 
-		$linkAttribs['class'] =
-			( $linkAttribs['class'] ?? '' ) . ' hs-container';
+		$attribs['class'] =
+			( $attribs['class'] ?? '' ) . ' hs-container';
 
-		$linkAttribs['data-hs'] = '1';
-		$linkAttribs['data-hs-reason'] = $reason;
+		$attribs['data-hs'] = '1';
+		$attribs['data-hs-reason'] = $reason;
 
 		$out = RequestContext::getMain()->getOutput();
 		$out->addModuleStyles( 'ext.hideSensitive.styles' );

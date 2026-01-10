@@ -80,6 +80,7 @@
 
 		$overlay.on( 'click', '.sensitive-content-button-show', function( e ) {
 			e.preventDefault();
+			e.stopPropagation();
 
 			$overlay.remove();
 			$container.removeClass( 'hs-container' );
@@ -101,6 +102,7 @@
 	if ( mw.config.get( 'wgHideSensitiveImagePage' ) ) {
 		const container = document.querySelector( '.fullImageLink' );
 		if ( container ) {
+			container.classList.add( 'hs-container' );
 			attachOverlay( container, mw.config.get( 'wgHideSensitiveReason' ) );
 		}
 	}
