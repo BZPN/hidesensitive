@@ -64,7 +64,11 @@ class Hooks
 		}
 		
 		$config = RequestContext::getMain()->getConfig();
-		$description = $config->get( 'wgSensitiveDefaultDescription' );
+		try {
+			$description = $config->get( 'wgSensitiveDefaultDescription' );
+		} catch ( \ConfigException $e ) {
+			$description = 'This content has been marked as sensitive.';
+		}
 
 		if (!is_array($linkAttribs)) $linkAttribs = [];
 		$linkAttribs['data-sensitive'] = 'true';
@@ -114,10 +118,15 @@ class Hooks
 
 		if ( self::isSensitiveFilePage( $title ) ) {
 			$config = RequestContext::getMain()->getConfig();
-			$overlay = self::getOverlayHTML( [ 
-				'width' => $imagepage->getFile()->getWidth(), 
+			try {
+				$description = $config->get( 'wgSensitiveDefaultDescription' );
+			} catch ( \ConfigException $e ) {
+				$description = 'This content has been marked as sensitive.';
+			}
+			$overlay = self::getOverlayHTML( [
+				'width' => $imagepage->getFile()->getWidth(),
 				'height' => $imagepage->getFile()->getHeight(),
-				'description' => $config->get( 'SensitiveDefaultDescription' )
+				'description' => $description
 			] );
 			$out->addHTML( $overlay );
 			$out->addModules( 'ext.hideSensitive.core' );
@@ -141,27 +150,36 @@ class Hooks
 	 * @param Config $config
 	 */
 	public static function onResourceLoaderGetConfigVars( array &$vars, string $skin, Config $config ) {
+		try {
+			$buttonColor = $config->get( 'wgSensitiveButtonColor' );
+		} catch ( \ConfigException $e ) {
+			$buttonColor = '#36c';
+		}
 		$vars['wgSensitiveContent'] = [
-			'buttonColor' => $config->get( 'wgSensitiveButtonColor' ),
+			'buttonColor' => $buttonColor,
 		];
 	}
 
 	private static function shouldBypass( User $user, Title $title ): bool {
 		$config = RequestContext::getMain()->getConfig();
 
-		$allowedGroups = $config->get( 'wgSensitiveContentAllowedGroup' );
-		if ( is_array($allowedGroups) && !empty( array_intersect( $user->getEffectiveGroups(), $allowedGroups ) ) ) {
-			return true;
-		}
+		try {
+			$allowedGroups = $config->get( 'wgSensitiveContentAllowedGroup' );
+			if ( is_array($allowedGroups) && !empty( array_intersect( $user->getEffectiveGroups(), $allowedGroups ) ) ) {
+				return true;
+			}
 
-		$allowedUsers = $config->get( 'wgSensitiveAllowedUsers' );
-		if ( is_array($allowedUsers) && in_array( $user->getName(), $allowedUsers ) ) {
-			return true;
-		}
+			$allowedUsers = $config->get( 'wgSensitiveAllowedUsers' );
+			if ( is_array($allowedUsers) && in_array( $user->getName(), $allowedUsers ) ) {
+				return true;
+			}
 
-		$allowedNamespaces = $config->get( 'wgSensitiveAllowedNamespaces' );
-		if ( is_array($allowedNamespaces) && in_array( $title->getNamespace(), $allowedNamespaces ) ) {
-			return true;
+			$allowedNamespaces = $config->get( 'wgSensitiveAllowedNamespaces' );
+			if ( is_array($allowedNamespaces) && in_array( $title->getNamespace(), $allowedNamespaces ) ) {
+				return true;
+			}
+		} catch ( \ConfigException $e ) {
+			// Config not set, use defaults
 		}
 
 		return false;
@@ -170,9 +188,19 @@ class Hooks
 	private static function getOverlayHTML( array $params ): string {
 		$config = RequestContext::getMain()->getConfig();
 
-		$desc = htmlspecialchars( $params['description'] ?? $config->get( 'wgSensitiveDefaultDescription' ) );
-		$buttonText = htmlspecialchars( $config->get( 'wgSensitiveButtonText' ) );
-		$buttonColor = htmlspecialchars( $config->get( 'wgSensitiveButtonColor' ) );
+		try {
+			$descDefault = $config->get( 'wgSensitiveDefaultDescription' );
+			$buttonText = $config->get( 'wgSensitiveButtonText' );
+			$buttonColor = $config->get( 'wgSensitiveButtonColor' );
+		} catch ( \ConfigException $e ) {
+			$descDefault = 'This content has been marked as sensitive.';
+			$buttonText = 'Show';
+			$buttonColor = '#36c';
+		}
+
+		$desc = htmlspecialchars( $params['description'] ?? $descDefault );
+		$buttonText = htmlspecialchars( $buttonText );
+		$buttonColor = htmlspecialchars( $buttonColor );
 
 		$width = $params['width'] ?? '200';
 		$height = $params['height'] ?? '200';
