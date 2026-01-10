@@ -10,7 +10,7 @@ use MediaWiki\Config\Config;
 use Skin;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Page\ImagePage;
-use MediaWiki\File\File;
+use MediaWiki\FileRepo\File\File;
 
 class Hooks {
 	private static function getSensitiveBlacklist(): array {
