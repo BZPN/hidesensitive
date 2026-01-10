@@ -55,7 +55,7 @@ class Hooks
 		$file = $thumbnail->getFile();
 		$title = $file ? $file->getTitle() : null;
 
-		if ( !self::isSensitive( $thumbnail->getParams(), $title ) ) {
+		if ( !self::isSensitive( [], $title ) ) {
 			return;
 		}
 
@@ -64,8 +64,7 @@ class Hooks
 		}
 		
 		$config = RequestContext::getMain()->getConfig();
-		$params = $thumbnail->getParams();
-		$description = $params['sensitive-description'] ?? $params['alt'] ?? $params['description'] ?? $config->get( 'SensitiveDefaultDescription' );
+		$description = $config->get( 'SensitiveDefaultDescription' );
 
 		$linkAttribs['data-sensitive'] = 'true';
 		$linkAttribs['data-width'] = $thumbnail->getWidth();
