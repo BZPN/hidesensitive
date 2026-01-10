@@ -32,7 +32,7 @@ class Hooks
 		if ( !$category || !$category->exists() ) {
 			return false; // Category doesn't exist, so no files can be in it.
 		}
-		$dbr = MediaWikiServices::getInstance()->getDBConnectionProvider()->getReplicaDatabase();
+		$dbr = MediaWikiServices::getInstance()->getDBLoadBalancer()->getConnection( \DB_REPLICA );
 		$res = $dbr->selectField(
 			'categorylinks',
 			'cl_from',
