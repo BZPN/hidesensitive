@@ -21,9 +21,20 @@
 			.append(
 				$( '<div>' ).addClass( 'sensitive-content-buttons' )
 					.append(
-						$( '<a>' ).addClass( 'sensitive-content-button-learn' )
+						$( '<a>' )
+							.addClass( 'sensitive-content-button-learn' )
 							.attr( 'href', learnMoreUrl )
-							.text( mw.msg( 'hidesensitive-learn-more' ) )
+							.append(
+								$( '<span>' ).addClass( 'hs-learn-text' )
+									.text( mw.msg( 'hidesensitive-learn-more' ) )
+							)
+							.append(
+								$( '<img>' )
+									.addClass( 'hs-learn-icon' )
+									.attr( 'src', mw.config.get( 'wgExtensionAssetsPath' ) +
+										'/HideSensitive/resources/images/info.png'
+									)
+							)
 					)
 					.append(
 						$( '<button>' ).addClass( 'sensitive-content-button-show' )
@@ -59,6 +70,14 @@
 			inset: 0,
 			zIndex: 20
 		});
+
+		const width = $container.outerWidth();
+		const height = $container.outerHeight();
+
+		// zdjęcia typu dowód, portret, małe thumbs
+		if ( width < 180 || height < 140 ) {
+			$overlay.addClass( 'hs-compact' );
+		}
 
 		$container.append( $overlay );
 

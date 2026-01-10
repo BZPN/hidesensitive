@@ -58,7 +58,8 @@
 				"hidesensitive-button-text"
 			],
 			"images": [
-				"resources/images/icon.png"
+				"resources/images/icon.png",
+				"resources/images/info.png"
 			],
 			"dependencies": [
 				"mediawiki.util",

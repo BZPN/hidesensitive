@@ -6,6 +6,7 @@
 	flex-direction: column;
 	justify-content: center;
 	align-items: center;
+	box-sizing: border-box;
 	z-index: 20;
 	background-color: #000;
 	opacity: 1 !important;
@@ -24,17 +25,36 @@
 }
 
 .sensitive-content-text {
-	max-width: 90%;
-	font-size: 1em;
-	margin-bottom: 1em;
 	text-align: center;
-	word-wrap: break-word;
+	font-size: 14px;
+	line-height: 1.4;
+	word-break: break-word;
+	white-space: normal;
+	max-width: 100%;
+	padding: 0 10px;
+	margin-bottom: 1em;
 }
 
 .sensitive-content-buttons {
 	display: flex;
-	gap: 0.8em;
+	gap: 8px;
+	flex-wrap: wrap;
+	justify-content: center;
 	align-items: center;
+}
+
+.hs-learn-icon {
+	display: none;
+	width: 18px;
+	height: 18px;
+}
+
+.hs-compact .hs-learn-text {
+	display: none;
+}
+
+.hs-compact .hs-learn-icon {
+	display: inline-block;
 }
 
 .sensitive-content-button-show {
