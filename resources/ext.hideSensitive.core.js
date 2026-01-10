@@ -37,40 +37,39 @@
 	}
 
 	/**
-	 * Hides the media element and prepends the overlay.
-	 * @param {jQuery} $el The element to apply the overlay to.
+	 * Applies overlay to the container of the sensitive marker.
+	 * @param {jQuery} $marker The element with data-sensitive marker.
 	 */
-	function applyOverlay( $el ) {
-		// Only process if not already processed
-		if ( $el.hasClass( 'hs-processed' ) || $el.find( '.sensitive-content-overlay-wrapper' ).length > 0 ) {
+	function applyOverlay( $marker ) {
+		const $container = $marker.closest( '.thumbinner, .gallerybox, .mw-file-element, figure' );
+		if ( !$container.length || $container.hasClass( 'hs-processed' ) ) {
 			return;
 		}
 
-		const $media = $el.is( 'img, video' ) ? $el : $el.find( '.thumbimage, img, video, .video-js' );
-		if ( $media.length > 0 ) {
-			$media.css( 'opacity', '0' );
-		}
+		$container.css({
+			position: 'relative',
+			overflow: 'hidden'
+		});
+		$container.addClass('hs-processed');
 
-		const $overlay = createOverlay( $el[ 0 ] );
+		const $media = $container.find('img, video');
+		$media.css({ opacity: 0 });
 
-		// Event handler to show the content
-		const showContent = function ( e ) {
+		const $overlay = createOverlay( $marker[0] );
+		$overlay.css({
+			position: 'absolute',
+			inset: 0,
+			zIndex: 20
+		});
+
+		$container.append( $overlay );
+
+		$overlay.on('click', '.sensitive-content-button-show', function(e) {
 			e.preventDefault();
-			e.stopPropagation();
 			$overlay.remove();
-			if ( $media.length > 0 ) {
-				$media.css( 'opacity', '1' );
-			}
-			$el.removeClass( 'hs-processed' ); // Allow re-application if needed
-		};
-
-		$overlay.on( 'click', '.sensitive-content-button-show', showContent );
-		// Don't click anywhere, only on button to avoid breaking links
-
-		// Insert inside the media container
-		const $container = $el.is( 'img, video' ) ? $el.parent() : $el;
-		$container.css( 'position', 'relative' ).append( $overlay );
-		$el.addClass( 'hs-processed' );
+			$media.css({ opacity: 1 });
+			$container.removeClass('hs-processed');
+		});
 	}
 
 	function initThumbnails( container ) {
@@ -137,24 +136,24 @@
 			return;
 		}
 
+		$viewerNode.css('opacity', '0');
+
 		const $overlay = createOverlay( currentSourceLink );
 
 		// Special styling for MMV
 		$overlay.css( {
 			position: 'absolute',
-			top: 0,
-			left: 0,
-			width: '100%',
-			height: '100%',
+			inset: 0,
 			zIndex: 1000
 		} );
 
 		$viewerNode.parent().append( $overlay );
 
-		$overlay.on( 'click', function(e) {
+		$overlay.on( 'click', '.sensitive-content-button-show', function(e) {
 			e.preventDefault();
 			e.stopPropagation();
 			$overlay.remove();
+			$viewerNode.css('opacity', '1');
 			// Unset sensitive flag so it doesn't re-appear when navigating gallery
 			viewer.element.dataset.mmvIsSensitive = 'false';
 		});

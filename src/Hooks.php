@@ -83,11 +83,7 @@ class Hooks {
 		// Use description from parameter if available, otherwise default
 		$linkAttribs['data-description'] = $linkAttribs['data-description'] ?? $description;
 
-		if ( !is_array( $attribs ) ) {
-			$attribs = [];
-		}
-		$attribs['data-sensitive'] = 'true';
-		$attribs['data-description'] = $linkAttribs['data-description'];
+		// Removed: Do not mark <img> as sensitive
 
 		RequestContext::getMain()->getOutput()->addModules( 'ext.hideSensitive.core' );
 	}
@@ -108,15 +104,6 @@ class Hooks {
 		}
 	}
 
-
-	/**
-	 * @param OutputPage $out
-	 * @param Skin $skin
-	 */
-	public static function onBeforePageDisplay( OutputPage $out, Skin $skin ) {
-		// This ensures the JS is loaded on every page, which is needed for MutationObserver to work.
-		$out->addModules( 'ext.hideSensitive.core' );
-	}
 
 	/**
 	 * @param array &$vars
@@ -167,5 +154,4 @@ class Hooks {
 		return false;
 	}
 }
-
 

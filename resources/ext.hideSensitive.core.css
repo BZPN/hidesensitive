@@ -1,10 +1,7 @@
 
 .sensitive-content-overlay-wrapper {
 	position: absolute;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
+	inset: 0;
 	background-color: #000;
 	color: #fff;
 	display: flex;
@@ -15,20 +12,19 @@
 	font-family: Arial, sans-serif;
 	box-sizing: border-box;
 	padding: 0.5em;
-	cursor: pointer;
 	overflow: hidden;
-	transition: all 0.2s ease-in-out;
-	z-index: 10;
+	z-index: 20;
 }
 
 .sensitive-content-icon {
 	width: 3em;
 	height: 3em;
-	background-image: url(icon.png);
-	background-repeat: no-repeat;
+	min-width: 2.5em;
+	min-height: 2.5em;
+	background-image: url( icon.png );
 	background-size: contain;
+	background-repeat: no-repeat;
 	background-position: center;
-	margin-bottom: 0.5em;
 	flex-shrink: 0;
 }
 
@@ -51,7 +47,6 @@
 	border-radius: 5px;
 	font-size: 0.9em;
 	font-weight: 500;
-	transition: background-color 0.2s, color 0.2s;
 	border: 1px solid transparent;
 }
 
@@ -74,42 +69,13 @@
 }
 
 
-/* Dynamic overlay: show only icon by default, full on hover */
-.sensitive-content-overlay-wrapper:not(:hover) .sensitive-content-text,
-.sensitive-content-overlay-wrapper:not(:hover) .sensitive-content-buttons {
-	display: none;
+/* Hide the original media when overlay exists */
+.hs-processed img,
+.hs-processed video {
+	opacity: 0;
 }
 
-.sensitive-content-overlay-wrapper:not(:hover) .sensitive-content-icon {
-	margin-bottom: 0;
+/* Klikalność tylko na przyciskach */
+.sensitive-content-button-show {
+	cursor: pointer;
 }
-
-.sensitive-content-overlay-wrapper:hover .sensitive-content-icon {
-	margin-bottom: 0.5em;
-}
-
-/* Responsive for very small overlays */
-@media (max-width: 150px), (max-height: 150px) {
-	.sensitive-content-overlay-wrapper .sensitive-content-text,
-	.sensitive-content-overlay-wrapper .sensitive-content-buttons {
-		display: none !important;
-	}
-	.sensitive-content-overlay-wrapper .sensitive-content-icon {
-		width: 2em !important;
-		height: 2em !important;
-		margin-bottom: 0 !important;
-	}
-}
-
-/* Hide the original media */
-[data-sensitive='true'] .thumbimage,
-[data-sensitive='true'] > img,
-[data-sensitive='true'] > video {
-    opacity: 0;
-}
-
-/* Ensure wrapper has a relative position if it's a thumb */
-.thumb[data-sensitive='true'] {
-	position: relative;
-}
-/* Ensure wrapper has a relative position if it's a thumb */
