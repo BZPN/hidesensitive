@@ -2,77 +2,111 @@
 ( function ( mw, $ ) {
 	'use strict';
 
-	function getOverlayHTML( link ) {
+	/**
+	 * Creates the HTML structure for the sensitive content overlay.
+	 * @param {HTMLElement} sourceElement The element that triggered the overlay.
+	 * @return {jQuery} A jQuery object representing the overlay.
+	 */
+	function createOverlay( sourceElement ) {
 		const config = mw.config.get( 'wgSensitiveContent' ) || {};
-		const description = link && link.dataset.description ? link.dataset.description : 'This content has been marked as sensitive.';
-		const buttonText = 'Show';
-		const buttonColor = config.buttonColor || '#36c';
-		const infoPage = config.infoPage || 'Wikipedia:Sensitive_content';
+		const description = sourceElement && sourceElement.dataset.description
+			? sourceElement.dataset.description
+			: mw.msg( 'sensitive-default-description' );
+		const infoPage = config.infoPage || 'Help:Sensitive_content';
 		const learnMoreUrl = mw.util.getUrl( infoPage );
 
-		const width = link && link.dataset.width ? link.dataset.width : '200';
-		const height = link && link.dataset.height ? link.dataset.height : '200';
+		const $overlay = $( '<div>' ).addClass( 'sensitive-content-overlay-wrapper' )
+			.append( $( '<div>' ).addClass( 'sensitive-content-icon' ) )
+			.append( $( '<div>' ).addClass( 'sensitive-content-text' ).text( description ) )
+			.append(
+				$( '<div>' ).addClass( 'sensitive-content-buttons' )
+					.append(
+						$( '<a>' ).addClass( 'sensitive-content-button-learn' )
+							.attr( 'href', learnMoreUrl )
+							.text( mw.msg( 'sensitive-learn-more' ) )
+					)
+					.append(
+						$( '<button>' ).addClass( 'sensitive-content-button-show' )
+							.text( mw.msg( 'sensitive-show-content' ) )
+					)
+			);
+		return $overlay;
+	}
 
-		return '<div class="sensitive-content-overlay-wrapper" style="background-color: #000; color: #fff; width: ' + width + 'px; height: ' + height + 'px; display: flex; flex-direction: column; justify-content: center; align-items: center; font-family: Arial, sans-serif;">' +
-			'<div class="sensitive-content-icon" style="font-size: 60px; text-decoration: line-through;">👁️</div>' +
-			'<div class="sensitive-content-text" style="margin: 20px 0; font-size: 16px;">' + mw.html.escape( description ) + '</div>' +
-			'<div class="sensitive-content-buttons" style="display: flex; gap: 20px;">' +
-			'<a href="' + mw.html.escape( learnMoreUrl ) + '" class="sensitive-content-button-learn" style="padding: 10px 20px; background-color: white; color: #333; border: 1px solid #ccc; text-decoration: none; border-radius: 5px;">Learn More</a>' +
-			'<button class="sensitive-content-button" style="padding: 10px 20px; background-color: ' + buttonColor + '; color: white; border: none; border-radius: 5px; cursor: pointer;">' + mw.html.escape( buttonText ) + '</button>' +
-			'</div>' +
-			'</div>';
+	/**
+	 * Hides the media element and prepends the overlay.
+	 * @param {jQuery} $el The element to apply the overlay to.
+	 */
+	function applyOverlay( $el ) {
+		// Only process if not already processed
+		if ( $el.hasClass( 'hs-processed' ) || $el.find( '.sensitive-content-overlay-wrapper' ).length > 0 ) {
+			return;
+		}
+
+		const $media = $el.is( 'img, video' ) ? $el : $el.find( '.thumbimage, img, video, .video-js' );
+		if ( $media.length > 0 ) {
+			$media.css( 'visibility', 'hidden' );
+		}
+
+		const $overlay = createOverlay( $el[ 0 ] );
+
+		// Event handler to show the content
+		const showContent = function ( e ) {
+			e.preventDefault();
+			e.stopPropagation();
+			$overlay.remove();
+			if ( $media.length > 0 ) {
+				$media.css( 'visibility', 'visible' );
+			}
+			$el.removeClass( 'hs-processed' ); // Allow re-application if needed
+		};
+
+		$overlay.on( 'click', '.sensitive-content-button-show', showContent );
+		$overlay.on( 'click', showContent ); // Click anywhere on the overlay to show
+
+		if ( $el.is( 'img, video' ) ) {
+			$el.before( $overlay );
+		} else {
+			$el.prepend( $overlay );
+		}
+		$el.addClass( 'hs-processed' );
 	}
 
 	function initThumbnails( container ) {
 		$( container ).find( '[data-sensitive="true"]' ).each( function () {
-			const $el = $( this );
-			
-			// If this is an image/video inside a sensitive link, skip it
-			if ( $el.is( 'img, video' ) && $el.closest( 'a[data-sensitive="true"]' ).length > 0 ) {
-				return;
-			}
-
-			// Only process if not already processed
-			if ( $el.find( '.sensitive-content-overlay-wrapper' ).length > 0 || $el.hasClass( 'hs-processed' ) ) {
-				return;
-			}
-
-			const $media = $el.is( 'img, video' ) ? $el : $el.find( '.thumbimage, img, video, .video-js' );
-			if ( $media.length > 0 ) {
-				$media.css( 'display', 'none' );
-			}
-
-			const overlayHTML = getOverlayHTML( this );
-			const $overlay = $( overlayHTML );
-
-			const width = $el.data( 'width' ) || $el.attr( 'width' );
-			const height = $el.data( 'height' ) || $el.attr( 'height' );
-			if ( width && height ) {
-				$overlay.find( '.sensitive-content-overlay' ).css( { width: width, height: height } );
-			}
-
-			$overlay.find( '.sensitive-content-button' ).on( 'click', function ( e ) {
-				e.preventDefault();
-				e.stopPropagation();
-				$overlay.remove();
-				$media.show();
-			} );
-
-			if ( $el.is( 'img, video' ) ) {
-				$el.before( $overlay );
-			} else {
-				$el.prepend( $overlay );
-			}
-			$el.addClass( 'hs-processed' );
+			applyOverlay( $( this ) );
 		} );
 	}
 
 	// --- Hooks and Initialization ---
 
-	// For standard page loads and dynamic content (like VisualEditor)
+	// For standard page loads and dynamic content
 	mw.hook( 'wikipage.content' ).add( function ( content ) {
 		initThumbnails( content );
 	} );
+
+	// Use MutationObserver to catch dynamically added content
+	const observer = new MutationObserver( function ( mutations ) {
+		mutations.forEach( function ( mutation ) {
+			if ( mutation.addedNodes.length ) {
+				$( mutation.addedNodes ).each( function () {
+					const $node = $( this );
+					if ( $node.is( '[data-sensitive="true"]' ) ) {
+						applyOverlay( $node );
+					}
+					$node.find( '[data-sensitive="true"]' ).each( function () {
+						applyOverlay( $( this ) );
+					} );
+				} );
+			}
+		} );
+	} );
+
+	observer.observe( document.body, {
+		childList: true,
+		subtree: true
+	} );
+
 
 	// --- MultimediaViewer Integration ---
 	let currentViewer = null;
@@ -80,10 +114,15 @@
 
 	mw.hook( 'mmv.viewer.before-opening' ).add( function ( viewer ) {
 		currentViewer = viewer;
-		currentSourceLink = viewer.element.closest( 'a[data-sensitive="true"]' );
-		if ( currentSourceLink ) {
+		// The source link can be the element itself or a parent anchor
+		const $sourceElement = viewer.element.closest( '[data-sensitive="true"]' );
+		if ( $sourceElement.length > 0 ) {
 			// Mark as sensitive so we can act on it when the image loads
 			viewer.element.dataset.mmvIsSensitive = 'true';
+			currentSourceLink = $sourceElement[0];
+		} else {
+			viewer.element.dataset.mmvIsSensitive = 'false';
+			currentSourceLink = null;
 		}
 	} );
 
@@ -96,28 +135,27 @@
 		if ( !$viewerNode || $viewerNode.parent().find( '.sensitive-content-overlay-wrapper' ).length > 0 ) {
 			return;
 		}
-		
-		const overlayHTML = getOverlayHTML( currentSourceLink );
-		const $overlay = $( overlayHTML );
-		
-		$overlay.find('.sensitive-content-overlay').css({
+
+		const $overlay = createOverlay( currentSourceLink );
+
+		// Special styling for MMV
+		$overlay.css( {
 			position: 'absolute',
-			top: '50%',
-			left: '50%',
-			transform: 'translate(-50%, -50%)',
-			zIndex: 1000,
-			width: '300px',
-			height: 'auto'
-		});
-		
+			top: 0,
+			left: 0,
+			width: '100%',
+			height: '100%',
+			zIndex: 1000
+		} );
+
 		$viewerNode.parent().append( $overlay );
 
-		$overlay.find( '.sensitive-content-button' ).on( 'click', function(e) {
+		$overlay.on( 'click', function(e) {
 			e.preventDefault();
 			e.stopPropagation();
 			$overlay.remove();
 			// Unset sensitive flag so it doesn't re-appear when navigating gallery
-			viewer.element.dataset.mmvIsSensitive = 'false'; 
+			viewer.element.dataset.mmvIsSensitive = 'false';
 		});
 	});
 
