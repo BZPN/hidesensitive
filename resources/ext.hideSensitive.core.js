@@ -97,6 +97,31 @@
 
 	// --- Hooks and Initialization ---
 
+	// Special handling for File: pages
+	if ( mw.config.get( 'wgHideSensitiveImagePage' ) ) {
+		const $file = $( '.fullImageLink img, .fullImageLink video' ).first();
+		if ( $file.length ) {
+			const $container = $file.parent();
+			$container.css( 'position', 'relative' );
+
+			const $overlay = createOverlay( $file[0] );
+			$overlay.css( {
+				position: 'absolute',
+				inset: 0,
+				zIndex: 10
+			} );
+
+			$file.css( 'opacity', 0 );
+			$container.append( $overlay );
+
+			$overlay.on( 'click', '.sensitive-content-button-show', function ( e ) {
+				e.preventDefault();
+				$overlay.remove();
+				$file.css( 'opacity', 1 );
+			} );
+		}
+	}
+
 	// For standard page loads and dynamic content
 	mw.hook( 'wikipage.content' ).add( function ( content ) {
 		initThumbnails( content );

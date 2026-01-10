@@ -60,10 +60,26 @@ class Hooks {
 		if ( !$file ) {
 			return;
 		}
-		$fileTitle = Title::makeTitle( NS_FILE, $file->getName() );
 
-		// Check sensitivity from file metadata (e.g., categories)
-		$isSensitiveFromFile = self::isSensitive( [], $fileTitle );
+		$pageId = $file->getPageId();
+		if ( !$pageId ) {
+			return;
+		}
+
+		// Check if file is in Sensitive_files category
+		$dbr = MediaWikiServices::getInstance()
+			->getConnectionProvider()
+			->getReplicaDatabase();
+
+		$isSensitiveFromFile = (bool)$dbr->selectField(
+			'categorylinks',
+			'1',
+			[
+				'cl_from' => $pageId,
+				'cl_to'   => 'Sensitive_files'
+			],
+			__METHOD__
+		);
 
 		// Also check parameters passed to the thumbnail itself (e.g. |sensitive=true in wikitext)
 		$isSensitiveFromParams = isset( $attribs['sensitive'] ) && $attribs['sensitive'] === 'true';
@@ -72,6 +88,7 @@ class Hooks {
 			return;
 		}
 
+		$fileTitle = Title::makeTitle( NS_FILE, $file->getName() );
 		if ( self::shouldBypass( RequestContext::getMain()->getUser(), $fileTitle ) ) {
 			return;
 		}
@@ -88,7 +105,11 @@ class Hooks {
 		RequestContext::getMain()->getOutput()->addModules( 'ext.hideSensitive.core' );
 	}
 
-	public static function onImagePageFindFile( ImagePage $imagePage, File &$file ) {
+	public static function onImagePageFindFile( ImagePage $imagePage, &$file ) {
+		if ( !$file instanceof File ) {
+			return;
+		}
+
 		$title = $imagePage->getTitle();
 
 		if ( self::isSensitiveFilePage( $title )
