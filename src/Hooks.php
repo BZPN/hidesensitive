@@ -27,12 +27,18 @@ class Hooks {
 		if ( !$title->inNamespace( NS_FILE ) || !$title->exists() ) {
 			return false;
 		}
-		$file = MediaWikiServices::getInstance()->getRepoGroup()->findFile( $title );
-		if ( !$file ) {
-			return false;
+
+		// Get categories of File: page
+		$cats = $title->getParentCategories();
+
+		foreach ( $cats as $catTitleText => $_ ) {
+			$catTitle = Title::newFromText( $catTitleText );
+			if ( $catTitle && $catTitle->getText() === 'Sensitive_files' ) {
+				return true;
+			}
 		}
-		$categories = $file->getCategories();
-		return in_array( 'Sensitive_files', $categories, true );
+
+		return false;
 	}
 
 	/**
