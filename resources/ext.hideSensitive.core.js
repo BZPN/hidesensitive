@@ -5,11 +5,12 @@
 	/**
 	 * Creates the HTML structure for the sensitive content overlay.
 	 * @param {HTMLElement} sourceElement The element that triggered the overlay.
+	 * @param {string} customDescription Optional custom description.
 	 * @return {jQuery} A jQuery object representing the overlay.
 	 */
-	function createOverlay( sourceElement ) {
+	function createOverlay( sourceElement, customDescription ) {
 		const config = mw.config.get( 'wgSensitiveContent' ) || {};
-		const description = sourceElement?.dataset.description || mw.msg( 'hidesensitive-default-description' );
+		const description = customDescription || sourceElement?.dataset.description || mw.msg( 'hidesensitive-default-description' );
 		const infoPage = config.infoPage || 'Help:Sensitive_content';
 		const learnMoreUrl = mw.util.getUrl( infoPage );
 		const buttonText = mw.msg( 'hidesensitive-button-text' );
@@ -103,7 +104,11 @@
 			const $container = $file.parent();
 			$container.css( 'position', 'relative' );
 
-			const $overlay = createOverlay( $file[0] );
+			const description =
+				mw.config.get('wgHideSensitiveReason') ||
+				mw.msg('hidesensitive-default-description');
+
+			const $overlay = createOverlay( null, description );
 			$overlay.css( {
 				position: 'absolute',
 				inset: 0,

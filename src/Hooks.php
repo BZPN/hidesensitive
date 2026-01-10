@@ -13,41 +13,46 @@ use MediaWiki\Page\ImagePage;
 use MediaWiki\File\File;
 
 class Hooks {
-	private static function isSensitive( array $params, Title $title = null ): bool {
-		if ( isset( $params['sensitive'] ) && $params['sensitive'] === 'true' ) {
-			return true;
+	private static function getSensitiveBlacklist(): array {
+		static $cache = null;
+		if ( $cache !== null ) {
+			return $cache;
 		}
-		if ( $title && self::isSensitiveFilePage( $title ) ) {
-			return true;
+
+		$title = Title::newFromText( 'MediaWiki:SensitiveImagesBlacklist.json' );
+		if ( !$title || !$title->exists() ) {
+			$cache = [];
+			return $cache;
 		}
-		return false;
+
+		$content = $title->getContent();
+		if ( !$content ) {
+			$cache = [];
+			return $cache;
+		}
+
+		$json = json_decode( $content->getText(), true );
+		if ( !is_array( $json ) ) {
+			$cache = [];
+			return $cache;
+		}
+
+		$map = [];
+		foreach ( $json as $entry ) {
+			if ( isset( $entry['file'] ) ) {
+				$map[ $entry['file'] ] = $entry['reason'] ?? '';
+			}
+		}
+
+		$cache = $map;
+		return $cache;
 	}
 
-	private static function isSensitiveFilePage( Title $title ): bool {
-		if ( !$title->inNamespace( NS_FILE ) || !$title->exists() ) {
-			return false;
-		}
+	private static function isBlacklistedFile( File $file ): ?string {
+		$list = self::getSensitiveBlacklist();
+		$name = $file->getName();
 
-		$dbr = MediaWikiServices::getInstance()
-			->getConnectionProvider()
-			->getReplicaDatabase();
-
-		$pageId = $title->getArticleID();
-		if ( !$pageId ) {
-			return false;
-		}
-
-		$exists = $dbr->selectField(
-			'categorylinks',
-			'1',
-			[
-				'cl_from' => $pageId,
-				'cl_to'   => 'Sensitive_files'
-			],
-			__METHOD__
-		);
-
-		return (bool)$exists;
+		return $list[$name] ?? null;
 	}
 
 	/**
@@ -61,40 +66,12 @@ class Hooks {
 			return;
 		}
 
-		$title = $file->getTitle();
-		if ( !$title || !$title->exists() ) {
+		$reason = self::isBlacklistedFile( $file );
+		if ( $reason === null ) {
 			return;
 		}
 
-		$pageId = $title->getArticleID();
-		if ( !$pageId ) {
-			return;
-		}
-
-		// Check if file is in Sensitive_files category
-		$dbr = MediaWikiServices::getInstance()
-			->getConnectionProvider()
-			->getReplicaDatabase();
-
-		$isSensitiveFromFile = (bool)$dbr->selectField(
-			'categorylinks',
-			'1',
-			[
-				'cl_from' => $pageId,
-				'cl_to'   => 'Sensitive_files'
-			],
-			__METHOD__
-		);
-
-		// Also check parameters passed to the thumbnail itself (e.g. |sensitive=true in wikitext)
-		$isSensitiveFromParams = isset( $attribs['sensitive'] ) && $attribs['sensitive'] === 'true';
-
-		if ( !$isSensitiveFromFile && !$isSensitiveFromParams ) {
-			return;
-		}
-
-		$fileTitle = Title::makeTitle( NS_FILE, $file->getName() );
-		if ( self::shouldBypass( RequestContext::getMain()->getUser(), $fileTitle ) ) {
+		if ( self::shouldBypass( RequestContext::getMain()->getUser(), $file->getTitle() ) ) {
 			return;
 		}
 
@@ -102,10 +79,7 @@ class Hooks {
 			$linkAttribs = [];
 		}
 		$linkAttribs['data-sensitive'] = 'true';
-		$linkAttribs['data-width'] = $thumbnail->getWidth();
-		$linkAttribs['data-height'] = $thumbnail->getHeight();
-
-		// Removed: Do not mark <img> as sensitive
+		$linkAttribs['data-description'] = $reason;
 
 		RequestContext::getMain()->getOutput()->addModules( 'ext.hideSensitive.core' );
 	}
@@ -115,18 +89,21 @@ class Hooks {
 			return;
 		}
 
-		$title = $imagePage->getTitle();
-
-		if ( self::isSensitiveFilePage( $title )
-			&& !self::shouldBypass( RequestContext::getMain()->getUser(), $title )
-		) {
-			RequestContext::getMain()->getOutput()->addModules( 'ext.hideSensitive.core' );
-
-			// Mark page as sensitive for JS
-			RequestContext::getMain()->getOutput()->addJsConfigVars( [
-				'wgHideSensitiveImagePage' => true
-			] );
+		$reason = self::isBlacklistedFile( $file );
+		if ( $reason === null ) {
+			return;
 		}
+
+		if ( self::shouldBypass( RequestContext::getMain()->getUser(), $file->getTitle() ) ) {
+			return;
+		}
+
+		RequestContext::getMain()->getOutput()->addModules( 'ext.hideSensitive.core' );
+
+		RequestContext::getMain()->getOutput()->addJsConfigVars( [
+			'wgHideSensitiveImagePage' => true,
+			'wgHideSensitiveReason' => $reason
+		] );
 	}
 
 
