@@ -10,6 +10,7 @@ use MediaWiki\Config\Config;
 use Skin;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Page\ImagePage;
+use MediaWiki\Revision\SlotRecord;
 
 class Hooks {
 	private static function getSensitiveBlacklist(): array {
@@ -20,20 +21,24 @@ class Hooks {
 
 		$title = Title::newFromText( 'MediaWiki:SensitiveImagesBlacklist.json' );
 		if ( !$title || !$title->exists() ) {
-			$cache = [];
-			return $cache;
+			return $cache = [];
 		}
 
-		$content = $title->getContent();
+		$services = MediaWikiServices::getInstance();
+		$rev = $services->getRevisionLookup()->getRevisionByTitle( $title );
+
+		if ( !$rev ) {
+			return $cache = [];
+		}
+
+		$content = $rev->getContent( SlotRecord::MAIN );
 		if ( !$content ) {
-			$cache = [];
-			return $cache;
+			return $cache = [];
 		}
 
 		$json = json_decode( $content->getText(), true );
 		if ( !is_array( $json ) ) {
-			$cache = [];
-			return $cache;
+			return $cache = [];
 		}
 
 		$map = [];
@@ -43,8 +48,7 @@ class Hooks {
 			}
 		}
 
-		$cache = $map;
-		return $cache;
+		return $cache = $map;
 	}
 
 	private static function isBlacklistedFile( $file ): ?string {
