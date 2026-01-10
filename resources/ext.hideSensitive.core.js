@@ -132,6 +132,25 @@
 			$inner.addClass( 'hs-container' );
 			attachOverlay( $inner[0], blacklist[fileName] );
 		} );
+
+		// Scan all image links for sensitive files
+		$content.find( 'a.image, a.mw-file-description' ).each( function () {
+			const $a = $( this );
+			const $img = $a.find( 'img' );
+			if ( !$img.length ) return;
+
+			const src = $img.attr( 'src' );
+			if ( !src ) return;
+
+			const fileName = mw.util.getParamValue( 'file', src );
+			if ( !fileName || !blacklist[fileName] ) return;
+
+			$a.addClass( 'hs-container' );
+			$a.attr( 'data-hs', '1' );
+			$a.attr( 'data-hs-reason', blacklist[fileName] );
+
+			attachOverlay( $a[0], blacklist[fileName] );
+		} );
 	} );
 
 	// --- MultimediaViewer Integration ---
