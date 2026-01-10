@@ -120,7 +120,7 @@ class Hooks implements BeforePageDisplayHook {
 		] );
 	}
 
-	public static function onBeforePageDisplay( OutputPage $out, Skin $skin ) {
+	public function onBeforePageDisplay( OutputPage $out, Skin $skin ) {
 		$out->addModuleStyles( 'ext.hideSensitive.styles' );
 		$out->addModules( 'ext.hideSensitive.core' );
 	}
