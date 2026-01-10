@@ -19,22 +19,22 @@
 		"MediaWiki\\Extension\\HideSensitive\\": "src/"
 	},
 	"Config": {
-		"SensitiveContentAllowedGroup": {
+		"wgSensitiveContentAllowedGroup": {
 			"value": []
 		},
-		"SensitiveDefaultDescription": {
+		"wgSensitiveDefaultDescription": {
 			"value": "This content has been marked as sensitive."
 		},
-		"SensitiveButtonText": {
+		"wgSensitiveButtonText": {
 			"value": "Show"
 		},
-		"SensitiveButtonColor": {
+		"wgSensitiveButtonColor": {
 			"value": "#36c"
 		},
-		"SensitiveAllowedUsers": {
+		"wgSensitiveAllowedUsers": {
 			"value": []
 		},
-		"SensitiveAllowedNamespaces": {
+		"wgSensitiveAllowedNamespaces": {
 			"value": []
 		}
 	},

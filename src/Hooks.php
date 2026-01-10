@@ -64,7 +64,7 @@ class Hooks
 		}
 		
 		$config = RequestContext::getMain()->getConfig();
-		$description = $config->get( 'SensitiveDefaultDescription' );
+		$description = $config->get( 'wgSensitiveDefaultDescription' );
 
 		if (!is_array($linkAttribs)) $linkAttribs = [];
 		$linkAttribs['data-sensitive'] = 'true';
@@ -142,24 +142,24 @@ class Hooks
 	 */
 	public static function onResourceLoaderGetConfigVars( array &$vars, string $skin, Config $config ) {
 		$vars['wgSensitiveContent'] = [
-			'buttonColor' => $config->get( 'SensitiveButtonColor' ),
+			'buttonColor' => $config->get( 'wgSensitiveButtonColor' ),
 		];
 	}
 
 	private static function shouldBypass( User $user, Title $title ): bool {
 		$config = RequestContext::getMain()->getConfig();
 
-		$allowedGroups = $config->get( 'SensitiveContentAllowedGroup' );
+		$allowedGroups = $config->get( 'wgSensitiveContentAllowedGroup' );
 		if ( is_array($allowedGroups) && !empty( array_intersect( $user->getEffectiveGroups(), $allowedGroups ) ) ) {
 			return true;
 		}
 
-		$allowedUsers = $config->get( 'SensitiveAllowedUsers' );
+		$allowedUsers = $config->get( 'wgSensitiveAllowedUsers' );
 		if ( is_array($allowedUsers) && in_array( $user->getName(), $allowedUsers ) ) {
 			return true;
 		}
 
-		$allowedNamespaces = $config->get( 'SensitiveAllowedNamespaces' );
+		$allowedNamespaces = $config->get( 'wgSensitiveAllowedNamespaces' );
 		if ( is_array($allowedNamespaces) && in_array( $title->getNamespace(), $allowedNamespaces ) ) {
 			return true;
 		}
@@ -170,9 +170,9 @@ class Hooks
 	private static function getOverlayHTML( array $params ): string {
 		$config = RequestContext::getMain()->getConfig();
 
-		$desc = htmlspecialchars( $params['description'] ?? $config->get( 'SensitiveDefaultDescription' ) );
-		$buttonText = htmlspecialchars( $config->get( 'SensitiveButtonText' ) );
-		$buttonColor = htmlspecialchars( $config->get( 'SensitiveButtonColor' ) );
+		$desc = htmlspecialchars( $params['description'] ?? $config->get( 'wgSensitiveDefaultDescription' ) );
+		$buttonText = htmlspecialchars( $config->get( 'wgSensitiveButtonText' ) );
+		$buttonColor = htmlspecialchars( $config->get( 'wgSensitiveButtonColor' ) );
 
 		$width = $params['width'] ?? '200';
 		$height = $params['height'] ?? '200';
