@@ -84,7 +84,7 @@
 			$overlay.remove();
 			$container.removeClass( 'hs-container' );
 
-			$container.find( '.mw-file-element' )
+			$container.children( 'img, video, svg' )
 				.css( 'opacity', '1' );
 		} );
 	}

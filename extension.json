@@ -24,13 +24,14 @@
 		"ResourceLoaderGetConfigVars": "MediaWiki\\Extension\\HideSensitive\\Hooks::onResourceLoaderGetConfigVars"
 	},
 	"ResourceModules": {
-		"ext.hideSensitive.core": {
-			"class": "MediaWiki\\ResourceLoader\\FileModule",
-			"scripts": [
-				"resources/ext.hideSensitive.core.js"
-			],
+		"ext.hideSensitive.styles": {
 			"styles": [
 				"resources/ext.hideSensitive.core.css"
+			]
+		},
+		"ext.hideSensitive.core": {
+			"scripts": [
+				"resources/ext.hideSensitive.core.js"
 			],
 			"messages": [
 				"hidesensitive-default-description",
@@ -43,7 +44,7 @@
 			],
 			"dependencies": [
 				"mediawiki.util",
-				"mediawiki.api"
+				"mediawiki.hook"
 			]
 		}
 	},

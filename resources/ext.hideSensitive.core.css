@@ -1,6 +1,13 @@
 
+a.hs-container {
+	position: relative !important;
+	display: inline-block;
+}
+
 /* NATYCHMIAST ukryj obrazek */
-a.hs-container .mw-file-element {
+a.hs-container img,
+a.hs-container video,
+a.hs-container svg {
 	opacity: 0 !important;
 }
 

@@ -92,9 +92,9 @@ class Hooks {
 		$linkAttribs['data-hs'] = '1';
 		$linkAttribs['data-hs-reason'] = $reason;
 
-		RequestContext::getMain()
-			->getOutput()
-			->addModules( 'ext.hideSensitive.core' );
+		$out = RequestContext::getMain()->getOutput();
+		$out->addModuleStyles( 'ext.hideSensitive.styles' );
+		$out->addModules( 'ext.hideSensitive.core' );
 	}
 
 	public static function onImagePageFindFile( ImagePage $imagePage, &$file ) {
@@ -134,7 +134,7 @@ class Hooks {
 		$config = $services->getMainConfig();
 
 		try {
-			$allowedGroups = $config->get( 'SensitiveContentAllowedGroup' );
+			$allowedGroups = $config->get( 'wgSensitiveContentAllowedGroup' );
 			if ( !is_array( $allowedGroups ) || $allowedGroups === [] ) {
 				return false;
 			}
