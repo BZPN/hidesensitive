@@ -28,17 +28,26 @@ class Hooks {
 			return false;
 		}
 
-		// Get categories of File: page
-		$cats = $title->getParentCategories();
+		$dbr = MediaWikiServices::getInstance()
+			->getConnectionProvider()
+			->getReplicaDatabase();
 
-		foreach ( $cats as $catTitleText => $_ ) {
-			$catTitle = Title::newFromText( $catTitleText );
-			if ( $catTitle && $catTitle->getText() === 'Sensitive_files' ) {
-				return true;
-			}
+		$pageId = $title->getArticleID();
+		if ( !$pageId ) {
+			return false;
 		}
 
-		return false;
+		$exists = $dbr->selectField(
+			'categorylinks',
+			'1',
+			[
+				'cl_from' => $pageId,
+				'cl_to'   => 'Sensitive_files'
+			],
+			__METHOD__
+		);
+
+		return (bool)$exists;
 	}
 
 	/**
