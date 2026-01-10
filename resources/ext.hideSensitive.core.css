@@ -86,7 +86,7 @@
 	color: #fff;
 	font-weight: 600;
 	cursor: pointer;
-	padding: 0 16px;   /* ← MUSI być tutaj */
+	padding: 0 14px; 
 }
 
 .sensitive-content-button-learn {
@@ -98,7 +98,7 @@
 	font-weight: 600;
 	cursor: pointer;
 	text-decoration: none;
-	padding: 0 16px;   /* ← MUSI być tutaj */
+	padding: 0 14px;
 }
 
 .sensitive-content-button-learn:hover {
