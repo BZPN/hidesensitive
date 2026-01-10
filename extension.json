@@ -19,12 +19,19 @@
 		"MediaWiki\\Extension\\HideSensitive\\": "src/"
 	},
     "ConfigRegistry": {
-        "SensitiveInfoPage": "Help:Sensitive_content",
-        "SensitiveButtonText": "",
-        "SensitiveButtonColor": "#36c",
-        "SensitiveContentAllowedGroup": []
+        "SensitiveInfoPage": {
+            "value": "Help:Sensitive_content"
+        },
+        "SensitiveButtonText": {
+            "value": ""
+        },
+        "SensitiveButtonColor": {
+            "value": "#36c"
+        },
+        "SensitiveContentAllowedGroup": {
+            "value": []
+        }
     },
-
 	"Hooks": {
 		"ThumbnailBeforeProduceHTML": "MediaWiki\\Extension\\HideSensitive\\Hooks::onThumbnailBeforeProduceHTML",
 		"ImagePageFindFile": "MediaWiki\\Extension\\HideSensitive\\Hooks::onImagePageFindFile",
