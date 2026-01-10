@@ -64,9 +64,9 @@ class Hooks {
 
 		// Check sensitivity from file metadata (e.g., categories)
 		$isSensitiveFromFile = self::isSensitive( [], $fileTitle );
-		
+
 		// Also check parameters passed to the thumbnail itself (e.g. |sensitive=true in wikitext)
-		$isSensitiveFromParams = isset( $linkAttribs['data-sensitive'] ) && $linkAttribs['data-sensitive'] === 'true';
+		$isSensitiveFromParams = isset( $attribs['sensitive'] ) && $attribs['sensitive'] === 'true';
 
 		if ( !$isSensitiveFromFile && !$isSensitiveFromParams ) {
 			return;

@@ -30,7 +30,7 @@
 							.text( buttonText )
 					)
 			);
-		$overlay.find( '.sensitive-content-button-show' ).css( 'background-color', buttonColor );
+		$overlay.find( '.sensitive-content-button-show' ).css( '--hs-button-color', buttonColor );
 		return $overlay;
 	}
 
