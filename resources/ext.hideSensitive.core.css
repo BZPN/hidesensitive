@@ -29,7 +29,6 @@ a.hs-container svg {
 .sensitive-content-icon {
 	width: 3em;
 	height: 3em;
-	background-image: url(../images/icon.png);
 	background-size: contain;
 	background-repeat: no-repeat;
 	background-position: center;

@@ -11,8 +11,9 @@ use Skin;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Page\ImagePage;
 use MediaWiki\Revision\SlotRecord;
+use MediaWiki\Hook\BeforePageDisplayHook;
 
-class Hooks {
+class Hooks implements BeforePageDisplayHook {
 	private static ?array $blacklist = null;
 
 	private static function getSensitiveBlacklist(): array {
@@ -119,6 +120,11 @@ class Hooks {
 		] );
 	}
 
+	public static function onBeforePageDisplay( OutputPage $out, Skin $skin ) {
+		$out->addModuleStyles( 'ext.hideSensitive.styles' );
+		$out->addModules( 'ext.hideSensitive.core' );
+	}
+
 	public static function onResourceLoaderGetConfigVars( array &$vars ) {
 		$config = MediaWikiServices::getInstance()->getMainConfig();
 
@@ -135,6 +141,9 @@ class Hooks {
 				? $config->get( 'wgSensitiveButtonColor' )
 				: '#36c',
 		];
+
+		// Expose blacklist for JS scanning of categories
+		$vars['wgSensitiveBlacklist'] = self::getSensitiveBlacklist();
 	}
 
 	private static function shouldBypass( User $user, Title $title ): bool {

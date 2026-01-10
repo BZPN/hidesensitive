@@ -17,7 +17,13 @@
 		const description = reason || mw.msg( 'hidesensitive-default-description' );
 
 		const $overlay = $( '<div>' ).addClass( 'sensitive-content-overlay-wrapper' )
-			.append( $( '<div>' ).addClass( 'sensitive-content-icon' ) )
+			.append(
+				$( '<div>' ).addClass( 'sensitive-content-icon' )
+					.css( 'background-image',
+						'url(' + mw.config.get( 'wgExtensionAssetsPath' ) +
+						'/HideSensitive/resources/images/icon.png)'
+					)
+			)
 			.append( $( '<div>' ).addClass( 'sensitive-content-text' ).text( description ) )
 			.append(
 				$( '<div>' ).addClass( 'sensitive-content-buttons' )
@@ -92,20 +98,41 @@
 
 	// --- Initialization ---
 
-	// Attach overlays to all containers marked by PHP
-	$( 'a.hs-container[data-hs]' ).each( function() {
-		const reason = this.dataset.hsReason;
-		attachOverlay( this, reason );
-	} );
+	mw.hook( 'wikipage.content' ).add( function ( $content ) {
+		// Attach overlays to all containers marked by PHP
+		$content.find( 'a.hs-container[data-hs]' ).each( function() {
+			const reason = this.dataset.hsReason;
+			attachOverlay( this, reason );
+		} );
 
-	// Special handling for File: pages
-	if ( mw.config.get( 'wgHideSensitiveImagePage' ) ) {
-		const container = document.querySelector( '.fullImageLink' );
-		if ( container ) {
-			container.classList.add( 'hs-container' );
-			attachOverlay( container, mw.config.get( 'wgHideSensitiveReason' ) );
+		// Special handling for File: pages
+		if ( mw.config.get( 'wgHideSensitiveImagePage' ) ) {
+			const container = document.querySelector( '.fullImageLink' );
+			if ( container ) {
+				container.classList.add( 'hs-container' );
+				attachOverlay( container, mw.config.get( 'wgHideSensitiveReason' ) );
+			}
 		}
-	}
+
+		// Scan category galleries for sensitive files
+		const blacklist = mw.config.get( 'wgSensitiveBlacklist' ) || {};
+		$content.find( '.gallerybox .thumbinner' ).each( function () {
+			const $inner = $( this );
+			const $img = $inner.find( 'img' );
+
+			if ( !$img.length ) {
+				return;
+			}
+
+			const fileName = mw.util.getParamValue( 'file', $img.attr( 'src' ) );
+			if ( !fileName || !blacklist[fileName] ) {
+				return;
+			}
+
+			$inner.addClass( 'hs-container' );
+			attachOverlay( $inner[0], blacklist[fileName] );
+		} );
+	} );
 
 	// --- MultimediaViewer Integration ---
 	let currentViewer = null;
