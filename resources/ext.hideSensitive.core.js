@@ -19,28 +19,46 @@
 	}
 
 	function initThumbnails( container ) {
-		$( container ).find( 'a[data-sensitive="true"]' ).each( function () {
-			const $link = $( this );
-			// Only process if not already processed
-			if ( $link.find( '.sensitive-content-overlay-wrapper' ).length > 0 ) {
+		$( container ).find( '[data-sensitive="true"]' ).each( function () {
+			const $el = $( this );
+			
+			// If this is an image/video inside a sensitive link, skip it
+			if ( $el.is( 'img, video' ) && $el.closest( 'a[data-sensitive="true"]' ).length > 0 ) {
 				return;
 			}
 
-			const $thumb = $link.find( '.thumbimage' );
-			if ( $thumb.length > 0 ) {
-				$thumb.css( 'display', 'none' );
+			// Only process if not already processed
+			if ( $el.find( '.sensitive-content-overlay-wrapper' ).length > 0 || $el.hasClass( 'hs-processed' ) ) {
+				return;
+			}
+
+			const $media = $el.is( 'img, video' ) ? $el : $el.find( '.thumbimage, img, video, .video-js' );
+			if ( $media.length > 0 ) {
+				$media.css( 'display', 'none' );
 			}
 
 			const overlayHTML = getOverlayHTML( this );
 			const $overlay = $( overlayHTML );
 
-			const width = $link.data( 'width' );
-			const height = $link.data( 'height' );
+			const width = $el.data( 'width' ) || $el.attr( 'width' );
+			const height = $el.data( 'height' ) || $el.attr( 'height' );
 			if ( width && height ) {
 				$overlay.find( '.sensitive-content-overlay' ).css( { width: width, height: height } );
 			}
 
-			$link.prepend( $overlay );
+			$overlay.find( '.sensitive-content-button' ).on( 'click', function ( e ) {
+				e.preventDefault();
+				e.stopPropagation();
+				$overlay.remove();
+				$media.show();
+			} );
+
+			if ( $el.is( 'img, video' ) ) {
+				$el.before( $overlay );
+			} else {
+				$el.prepend( $overlay );
+			}
+			$el.addClass( 'hs-processed' );
 		} );
 	}
 

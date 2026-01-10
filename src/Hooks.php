@@ -7,22 +7,32 @@ use MediaWiki\Hook\ThumbnailBeforeProduceHTMLHook;
 use MediaWiki\Hook\ImageOpenShowImageInlineBeforeHook;
 use MediaWiki\Hook\BeforePageDisplayHook;
 use MediaWiki\Hook\ResourceLoaderGetConfigVarsHook;
+use MediaWiki\Hook\ImageBeforeProduceHTMLHook;
 use MediaWiki\Title\Title;
 use MediaWiki\User\User;
-use OutputPage;
+use MediaWiki\Output\OutputPage;
+use MediaWiki\Config\Config;
 use Skin;
 use MediaWiki\MediaWikiServices;
 use ImagePage;
-use Parser;
+use MediaWiki\Parser\Parser;
+use MediaWiki\Media\ThumbnailImage;
 
 class Hooks implements
 	ThumbnailBeforeProduceHTMLHook,
 	ImageOpenShowImageInlineBeforeHook,
 	BeforePageDisplayHook,
-	ResourceLoaderGetConfigVarsHook
+	ResourceLoaderGetConfigVarsHook,
+	ImageBeforeProduceHTMLHook
 {
-	private static function isSensitive( array $params ): bool {
-		return isset( $params['sensitive'] ) && $params['sensitive'] === 'true';
+	private static function isSensitive( array $params, Title $title = null ): bool {
+		if ( isset( $params['sensitive'] ) && $params['sensitive'] === 'true' ) {
+			return true;
+		}
+		if ( $title && self::isSensitiveFilePage( $title ) ) {
+			return true;
+		}
+		return false;
 	}
 
 	private static function isSensitiveFilePage( Title $title ): bool {
@@ -48,28 +58,38 @@ class Hooks implements
 		return $res !== false;
 	}
 
+	/**
+	 * @param ThumbnailImage $thumbnail
+	 * @param array &$attribs
+	 * @param array &$linkAttribs
+	 */
 	public function onThumbnailBeforeProduceHTML( $thumbnail, &$attribs, &$linkAttribs ): void {
-		$params = $thumbnail->getParams();
-		if ( !self::isSensitive( $params ) ) {
+		$file = $thumbnail->getFile();
+		$title = $file ? $file->getTitle() : null;
+
+		if ( !self::isSensitive( $thumbnail->getParams(), $title ) ) {
 			return;
 		}
 
-		$file = $thumbnail->getFile();
-		if ( self::shouldBypass( RequestContext::getMain()->getUser(), $file->getTitle() ) ) {
+		if ( $title && self::shouldBypass( RequestContext::getMain()->getUser(), $title ) ) {
 			return;
 		}
 		
 		$config = RequestContext::getMain()->getConfig();
-		$description = $params['alt'] ?? $params['description'] ?? $config->get( 'SensitiveDefaultDescription' );
+		$params = $thumbnail->getParams();
+		$description = $params['sensitive-description'] ?? $params['alt'] ?? $params['description'] ?? $config->get( 'SensitiveDefaultDescription' );
 
 		$linkAttribs['data-sensitive'] = 'true';
 		$linkAttribs['data-width'] = $thumbnail->getWidth();
 		$linkAttribs['data-height'] = $thumbnail->getHeight();
 		$linkAttribs['data-description'] = $description;
+
+		$attribs['data-sensitive'] = 'true';
+		$attribs['data-description'] = $description;
 	}
 
 	/**
-	 * @param Parser &$parser
+	 * @param Parser $parser
 	 * @param Title $title
 	 * @param \File $file
 	 * @param array &$frameParams
@@ -78,18 +98,18 @@ class Hooks implements
 	 * @param string &$res
 	 * @return bool
 	 */
-	public function onImageBeforeProduceHTML( &$parser, $title, $file, &$frameParams, &$handlerParams, &$time, &$res ) {
-		if ( !self::isSensitive( $frameParams ) ) {
-			return true;
+	public function onImageBeforeProduceHTML( $parser, $title, $file, &$frameParams, &$handlerParams, &$time, &$res ) {
+		if ( self::isSensitive( $frameParams, $title ) ) {
+			if ( !self::shouldBypass( $parser->getUser(), $title ) ) {
+				$handlerParams['sensitive'] = 'true';
+				// Also pass description if present
+				if ( isset( $frameParams['description'] ) ) {
+					$handlerParams['sensitive-description'] = $frameParams['description'];
+				}
+				$parser->getOutput()->addModules( 'ext.hideSensitive.core' );
+			}
 		}
-		
-		if ( self::shouldBypass( $parser->getUser(), $title ) ) {
-			return true;
-		}
-
-		$res = self::getOverlayHTML( $frameParams );
-		$parser->getOutput()->addModules( 'ext.hideSensitive.core' );
-		return false; // Prevent default rendering
+		return true;
 	}
 
 	/**
@@ -104,27 +124,34 @@ class Hooks implements
 		}
 
 		if ( self::isSensitiveFilePage( $title ) ) {
-			// A better approach might be to add the overlay HTML directly here.
-			$out->clearHTML();
+			$config = RequestContext::getMain()->getConfig();
 			$overlay = self::getOverlayHTML( [ 
 				'width' => $imagepage->getFile()->getWidth(), 
 				'height' => $imagepage->getFile()->getHeight(),
-				'description' => 'This file has been marked as sensitive.' // TODO: make this configurable
+				'description' => $config->get( 'SensitiveDefaultDescription' )
 			] );
 			$out->addHTML( $overlay );
+			$out->addModules( 'ext.hideSensitive.core' );
 			return false;
 		}
 		
 		return true;
 	}
 
+	/**
+	 * @param OutputPage $out
+	 * @param Skin $skin
+	 */
 	public function onBeforePageDisplay( $out, $skin ): void {
-		// This hook adds the core CSS/JS to all pages, as sensitive content
-		// can appear on any page.
 		$out->addModules( 'ext.hideSensitive.core' );
 	}
 
-	public function onResourceLoaderGetConfigVars( array &$vars, $skin, \Config $config ): void {
+	/**
+	 * @param array &$vars
+	 * @param string $skin
+	 * @param Config $config
+	 */
+	public function onResourceLoaderGetConfigVars( array &$vars, $skin, Config $config ): void {
 		$vars['wgSensitiveContent'] = [
 			'buttonColor' => $config->get( 'SensitiveButtonColor' ),
 		];
