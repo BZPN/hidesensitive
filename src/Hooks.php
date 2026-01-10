@@ -61,7 +61,12 @@ class Hooks {
 			return;
 		}
 
-		$pageId = $file->getPageId();
+		$title = $file->getTitle();
+		if ( !$title || !$title->exists() ) {
+			return;
+		}
+
+		$pageId = $title->getArticleID();
 		if ( !$pageId ) {
 			return;
 		}
