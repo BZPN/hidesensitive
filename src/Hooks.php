@@ -9,8 +9,8 @@ use MediaWiki\Output\OutputPage;
 use MediaWiki\Config\Config;
 use Skin;
 use MediaWiki\MediaWikiServices;
-use ImagePage;
-use MediaWiki\Linker\LinkRenderer;
+use MediaWiki\Page\ImagePage;
+use MediaWiki\File\File;
 
 class Hooks {
 	private static function isSensitive( array $params, Title $title = null ): bool {
@@ -88,18 +88,18 @@ class Hooks {
 		RequestContext::getMain()->getOutput()->addModules( 'ext.hideSensitive.core' );
 	}
 
-	/**
-	 * @param ImagePage $imagepage
-	 * @param LinkRenderer $linkRenderer
-	 * @param \File $fileToLink
-	 * @param array &$linkAttribs
-	 * @param string &$html
-	 */
-	public static function onImagePageFindFile( $imagepage, $linkRenderer, $fileToLink, &$linkAttribs, &$html ) {
-		$title = $imagepage->getTitle();
-		if ( self::isSensitiveFilePage( $title ) && !self::shouldBypass( RequestContext::getMain()->getUser(), $title ) ) {
-			$linkAttribs['data-sensitive'] = 'true';
+	public static function onImagePageFindFile( ImagePage $imagePage, File &$file ) {
+		$title = $imagePage->getTitle();
+
+		if ( self::isSensitiveFilePage( $title )
+			&& !self::shouldBypass( RequestContext::getMain()->getUser(), $title )
+		) {
 			RequestContext::getMain()->getOutput()->addModules( 'ext.hideSensitive.core' );
+
+			// Mark page as sensitive for JS
+			RequestContext::getMain()->getOutput()->addJsConfigVars( [
+				'wgHideSensitiveImagePage' => true
+			] );
 		}
 	}
 
