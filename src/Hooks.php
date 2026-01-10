@@ -48,10 +48,10 @@ class Hooks
 
 	/**
 	 * @param mixed $thumbnail
-	 * @param array &$attribs
-	 * @param array &$linkAttribs
+	 * @param mixed &$attribs
+	 * @param mixed &$linkAttribs
 	 */
-	public static function onThumbnailBeforeProduceHTML( $thumbnail, array &$attribs, array &$linkAttribs ) {
+	public static function onThumbnailBeforeProduceHTML( $thumbnail, &$attribs, &$linkAttribs ) {
 		$file = $thumbnail->getFile();
 		$title = $file ? $file->getTitle() : null;
 
@@ -66,11 +66,13 @@ class Hooks
 		$config = RequestContext::getMain()->getConfig();
 		$description = $config->get( 'SensitiveDefaultDescription' );
 
+		if (!is_array($linkAttribs)) $linkAttribs = [];
 		$linkAttribs['data-sensitive'] = 'true';
 		$linkAttribs['data-width'] = $thumbnail->getWidth();
 		$linkAttribs['data-height'] = $thumbnail->getHeight();
 		$linkAttribs['data-description'] = $description;
 
+		if (!is_array($attribs)) $attribs = [];
 		$attribs['data-sensitive'] = 'true';
 		$attribs['data-description'] = $description;
 	}
