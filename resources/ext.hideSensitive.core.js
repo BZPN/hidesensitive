@@ -14,6 +14,8 @@
 			: mw.msg( 'sensitive-default-description' );
 		const infoPage = config.infoPage || 'Help:Sensitive_content';
 		const learnMoreUrl = mw.util.getUrl( infoPage );
+		const buttonText = config.buttonText || 'Show';
+		const buttonColor = config.buttonColor || '#36c';
 
 		const $overlay = $( '<div>' ).addClass( 'sensitive-content-overlay-wrapper' )
 			.append( $( '<div>' ).addClass( 'sensitive-content-icon' ) )
@@ -27,9 +29,10 @@
 					)
 					.append(
 						$( '<button>' ).addClass( 'sensitive-content-button-show' )
-							.text( mw.msg( 'sensitive-show-content' ) )
+							.text( buttonText )
 					)
 			);
+		$overlay.find( '.sensitive-content-button-show' ).css( 'background-color', buttonColor );
 		return $overlay;
 	}
 
@@ -45,7 +48,7 @@
 
 		const $media = $el.is( 'img, video' ) ? $el : $el.find( '.thumbimage, img, video, .video-js' );
 		if ( $media.length > 0 ) {
-			$media.css( 'visibility', 'hidden' );
+			$media.css( 'opacity', '0' );
 		}
 
 		const $overlay = createOverlay( $el[ 0 ] );
@@ -56,19 +59,17 @@
 			e.stopPropagation();
 			$overlay.remove();
 			if ( $media.length > 0 ) {
-				$media.css( 'visibility', 'visible' );
+				$media.css( 'opacity', '1' );
 			}
 			$el.removeClass( 'hs-processed' ); // Allow re-application if needed
 		};
 
 		$overlay.on( 'click', '.sensitive-content-button-show', showContent );
-		$overlay.on( 'click', showContent ); // Click anywhere on the overlay to show
+		// Don't click anywhere, only on button to avoid breaking links
 
-		if ( $el.is( 'img, video' ) ) {
-			$el.before( $overlay );
-		} else {
-			$el.prepend( $overlay );
-		}
+		// Insert inside the media container
+		const $container = $el.is( 'img, video' ) ? $el.parent() : $el;
+		$container.css( 'position', 'relative' ).append( $overlay );
 		$el.addClass( 'hs-processed' );
 	}
 
@@ -160,4 +161,5 @@
 	});
 
 }( mw, jQuery ) );
+
 

@@ -14,15 +14,21 @@
 	text-align: center;
 	font-family: Arial, sans-serif;
 	box-sizing: border-box;
-	padding: 1em;
+	padding: 0.5em;
 	cursor: pointer;
 	overflow: hidden;
 	transition: all 0.2s ease-in-out;
+	z-index: 10;
 }
 
 .sensitive-content-icon {
-	font-size: 60px;
-	margin-bottom: 1em;
+	width: 3em;
+	height: 3em;
+	background-image: url(icon.png);
+	background-repeat: no-repeat;
+	background-size: contain;
+	background-position: center;
+	margin-bottom: 0.5em;
 	flex-shrink: 0;
 }
 
@@ -68,26 +74,30 @@
 }
 
 
-/* Responsive behavior for small containers */
-/* When the container is less than 200px wide, hide details */
-.sensitive-content-overlay-wrapper:not(:hover) {
-	font-size: 1rem; /* Base font size for calculations */
+/* Dynamic overlay: show only icon by default, full on hover */
+.sensitive-content-overlay-wrapper:not(:hover) .sensitive-content-text,
+.sensitive-content-overlay-wrapper:not(:hover) .sensitive-content-buttons {
+	display: none;
 }
 
-@media (max-width: 200px), (max-height: 200px) {
-	.sensitive-content-overlay-wrapper:not(:hover) .sensitive-content-text,
-	.sensitive-content-overlay-wrapper:not(:hover) .sensitive-content-buttons {
-		display: none;
-	}
+.sensitive-content-overlay-wrapper:not(:hover) .sensitive-content-icon {
+	margin-bottom: 0;
+}
 
-	.sensitive-content-overlay-wrapper:not(:hover) .sensitive-content-icon {
-		margin-bottom: 0;
-		width: 2.5em; /* Make icon a bit smaller */
-		height: 2.5em;
+.sensitive-content-overlay-wrapper:hover .sensitive-content-icon {
+	margin-bottom: 0.5em;
+}
+
+/* Responsive for very small overlays */
+@media (max-width: 150px), (max-height: 150px) {
+	.sensitive-content-overlay-wrapper .sensitive-content-text,
+	.sensitive-content-overlay-wrapper .sensitive-content-buttons {
+		display: none !important;
 	}
-	
-	.sensitive-content-overlay-wrapper:hover {
-		background-color: rgba(245, 245, 245, 0.98);
+	.sensitive-content-overlay-wrapper .sensitive-content-icon {
+		width: 2em !important;
+		height: 2em !important;
+		margin-bottom: 0 !important;
 	}
 }
 
@@ -95,7 +105,7 @@
 [data-sensitive='true'] .thumbimage,
 [data-sensitive='true'] > img,
 [data-sensitive='true'] > video {
-    visibility: hidden;
+    opacity: 0;
 }
 
 /* Ensure wrapper has a relative position if it's a thumb */

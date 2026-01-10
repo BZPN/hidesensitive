@@ -22,9 +22,6 @@
 		"wgSensitiveContentAllowedGroup": {
 			"value": []
 		},
-		"wgSensitiveDefaultDescription": {
-			"value": "This content has been marked as sensitive."
-		},
 		"wgSensitiveButtonText": {
 			"value": "Show"
 		},
