@@ -10,7 +10,6 @@ use MediaWiki\Config\Config;
 use Skin;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Page\ImagePage;
-use MediaWiki\FileRepo\File\File;
 
 class Hooks {
 	private static function getSensitiveBlacklist(): array {
@@ -48,11 +47,13 @@ class Hooks {
 		return $cache;
 	}
 
-	private static function isBlacklistedFile( File $file ): ?string {
-		$list = self::getSensitiveBlacklist();
-		$name = $file->getName();
+	private static function isBlacklistedFile( $file ): ?string {
+		if ( !$file || !method_exists( $file, 'getName' ) ) {
+			return null;
+		}
 
-		return $list[$name] ?? null;
+		$list = self::getSensitiveBlacklist();
+		return $list[ $file->getName() ] ?? null;
 	}
 
 	/**
@@ -85,7 +86,7 @@ class Hooks {
 	}
 
 	public static function onImagePageFindFile( ImagePage $imagePage, &$file ) {
-		if ( !$file instanceof File ) {
+		if ( !$file || !method_exists( $file, 'getName' ) ) {
 			return;
 		}
 
