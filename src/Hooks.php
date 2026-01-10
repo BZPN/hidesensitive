@@ -47,11 +47,11 @@ class Hooks
 	}
 
 	/**
-	 * @param \MediaWiki\Media\ThumbnailImage $thumbnail
+	 * @param mixed $thumbnail
 	 * @param array &$attribs
 	 * @param array &$linkAttribs
 	 */
-	public static function onThumbnailBeforeProduceHTML( \MediaWiki\Media\ThumbnailImage $thumbnail, array &$attribs, array &$linkAttribs ) {
+	public static function onThumbnailBeforeProduceHTML( $thumbnail, array &$attribs, array &$linkAttribs ) {
 		$file = $thumbnail->getFile();
 		$title = $file ? $file->getTitle() : null;
 
