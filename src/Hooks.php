@@ -131,12 +131,6 @@ class Hooks {
 		$vars['wgSensitiveContent'] = [
 			'infoPage' => $infoPage,
 		];
-		// Pass i18n messages to JavaScript
-		$vars['wgSensitiveMessages'] = [
-			'sensitive-default-description' => wfMessage( 'sensitive-default-description' )->text(),
-			'sensitive-learn-more' => wfMessage( 'sensitive-learn-more' )->text(),
-			'sensitive-show-content' => wfMessage( 'sensitive-show-content' )->text(),
-		];
 	}
 
 	private static function getDefaultDescription(): string {
@@ -167,4 +161,5 @@ class Hooks {
 		return false;
 	}
 }
+
 
