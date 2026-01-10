@@ -1,10 +1,6 @@
 
-.hs-processed img,
-.hs-container img {
-	opacity: 0;
-}
-
-.hs-processed img {
+/* Obraz jest niewidoczny, ale zachowuje layout */
+.hs-hidden img {
 	visibility: hidden;
 }
 

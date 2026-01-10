@@ -83,8 +83,7 @@ class Hooks {
 			return;
 		}
 
-		$attribs['class'] = ( $attribs['class'] ?? '' ) . ' hs-container';
-		$attribs['style'] = ( $attribs['style'] ?? '' ) . ';opacity:0';
+		$attribs['class'] = ( $attribs['class'] ?? '' ) . ' hs-container hs-hidden';
 		$attribs['data-hs-reason'] = $reason;
 		$attribs['data-hs'] = '1';
 

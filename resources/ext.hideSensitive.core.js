@@ -68,6 +68,11 @@
 			zIndex: 20
 		} );
 
+		$container.append( $overlay );
+
+		// wymuś layout – krytyczne
+		$container[0].getBoundingClientRect();
+
 		const width = $container.outerWidth();
 		const height = $container.outerHeight();
 
@@ -76,12 +81,10 @@
 			$overlay.addClass( 'hs-compact' );
 		}
 
-		$container.append( $overlay );
-
 		$overlay.on( 'click', '.sensitive-content-button-show', function( e ) {
 			e.preventDefault();
 			$overlay.remove();
-			$container.removeClass( 'hs-processed' );
+			$container.removeClass( 'hs-processed hs-hidden' );
 		} );
 	}
 
@@ -153,5 +156,6 @@
 	} );
 
 }( mw, jQuery ) );
+
 
 
