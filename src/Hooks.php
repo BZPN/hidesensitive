@@ -123,9 +123,17 @@ class Hooks {
 		$config = MediaWikiServices::getInstance()->getMainConfig();
 
 		$vars['wgSensitiveContent'] = [
-			'infoPage' => $config->get( 'wgSensitiveInfoPage' ),
-			'buttonText' => $config->get( 'wgSensitiveButtonText' ),
-			'buttonColor' => $config->get( 'wgSensitiveButtonColor' ),
+			'infoPage' => $config->has( 'wgSensitiveInfoPage' )
+				? $config->get( 'wgSensitiveInfoPage' )
+				: 'Help:Sensitive_content',
+
+			'buttonText' => $config->has( 'wgSensitiveButtonText' )
+				? $config->get( 'wgSensitiveButtonText' )
+				: 'Show',
+
+			'buttonColor' => $config->has( 'wgSensitiveButtonColor' )
+				? $config->get( 'wgSensitiveButtonColor' )
+				: '#36c',
 		];
 	}
 

@@ -43,8 +43,7 @@
 				"resources/images/info.png"
 			],
 			"dependencies": [
-				"mediawiki.util",
-				"mediawiki.hook"
+				"mediawiki.util"
 			]
 		}
 	},
