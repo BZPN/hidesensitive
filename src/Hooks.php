@@ -51,10 +51,10 @@ class Hooks {
 		if ( !$file ) {
 			return;
 		}
-		$title = $file->getTitle();
+		$fileTitle = Title::makeTitle( NS_FILE, $file->getName() );
 
 		// Check sensitivity from file metadata (e.g., categories)
-		$isSensitiveFromFile = self::isSensitive( [], $title );
+		$isSensitiveFromFile = self::isSensitive( [], $fileTitle );
 		
 		// Also check parameters passed to the thumbnail itself (e.g. |sensitive=true in wikitext)
 		$isSensitiveFromParams = isset( $linkAttribs['data-sensitive'] ) && $linkAttribs['data-sensitive'] === 'true';
@@ -63,7 +63,7 @@ class Hooks {
 			return;
 		}
 
-		if ( self::shouldBypass( RequestContext::getMain()->getUser(), $title ) ) {
+		if ( self::shouldBypass( RequestContext::getMain()->getUser(), $fileTitle ) ) {
 			return;
 		}
 
