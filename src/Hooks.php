@@ -123,8 +123,13 @@ class Hooks {
 	 */
 	public static function onResourceLoaderGetConfigVars( array &$vars ) {
 		$config = MediaWikiServices::getInstance()->getMainConfig();
+		try {
+			$infoPage = $config->get( 'wgSensitiveInfoPage' );
+		} catch ( \ConfigException $e ) {
+			$infoPage = 'Wikipedia:Sensitive_content';
+		}
 		$vars['wgSensitiveContent'] = [
-			'infoPage' => $config->get( 'wgSensitiveInfoPage' ),
+			'infoPage' => $infoPage,
 		];
 		// Pass i18n messages to JavaScript
 		$vars['wgSensitiveMessages'] = [
