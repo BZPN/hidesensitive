@@ -113,6 +113,11 @@ class Hooks {
 	}
 
 	public static function onParserMakeImageParams( $parser, &$params ) {
+		// ⛔ CRITICAL: params MUST be array
+		if ( !is_array( $params ) ) {
+			return;
+		}
+
 		if (
 			!isset( $params['frame'] ) ||
 			!is_array( $params['frame'] )
@@ -130,7 +135,6 @@ class Hooks {
 			return;
 		}
 
-		// NIE zakładamy, że class istnieje
 		$params['frame']['class'] =
 			( $params['frame']['class'] ?? '' ) . ' hs-container hs-hidden';
 
