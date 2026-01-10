@@ -44,7 +44,8 @@ class Hooks {
 		$map = [];
 		foreach ( $json as $entry ) {
 			if ( isset( $entry['file'] ) ) {
-				$map[ $entry['file'] ] = $entry['reason'] ?? '';
+				$reason = trim( $entry['reason'] ?? '' );
+				$map[ $entry['file'] ] = $reason !== '' ? $reason : null;
 			}
 		}
 
