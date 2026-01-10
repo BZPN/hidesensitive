@@ -4,17 +4,22 @@
 
 	function getOverlayHTML( link ) {
 		const config = mw.config.get( 'wgSensitiveContent' ) || {};
-		const description = link && link.dataset.description ? link.dataset.description : mw.msg( 'hidesensitive-default-description' );
-		const buttonText = mw.msg( 'hidesensitive-button-text' );
+		const description = link && link.dataset.description ? link.dataset.description : 'This content has been marked as sensitive.';
+		const buttonText = 'Show';
 		const buttonColor = config.buttonColor || '#36c';
+		const infoPage = config.infoPage || 'Wikipedia:Sensitive_content';
+		const learnMoreUrl = mw.util.getUrl( infoPage );
 
-		// Using a wrapper div to make event delegation easier
-		return '<div class="sensitive-content-overlay-wrapper">' +
-				'<div class="sensitive-content-overlay">' +
-					'<div class="sensitive-content-icon"></div>' +
-					'<div class="sensitive-content-text">' + mw.html.escape( description ) + '</div>' +
-					'<button class="sensitive-content-button" style="background-color:' + buttonColor + ';">' + mw.html.escape( buttonText ) + '</button>' +
-				'</div>' +
+		const width = link && link.dataset.width ? link.dataset.width : '200';
+		const height = link && link.dataset.height ? link.dataset.height : '200';
+
+		return '<div class="sensitive-content-overlay-wrapper" style="background-color: #000; color: #fff; width: ' + width + 'px; height: ' + height + 'px; display: flex; flex-direction: column; justify-content: center; align-items: center; font-family: Arial, sans-serif;">' +
+			'<div class="sensitive-content-icon" style="font-size: 60px; text-decoration: line-through;">👁️</div>' +
+			'<div class="sensitive-content-text" style="margin: 20px 0; font-size: 16px;">' + mw.html.escape( description ) + '</div>' +
+			'<div class="sensitive-content-buttons" style="display: flex; gap: 20px;">' +
+			'<a href="' + mw.html.escape( learnMoreUrl ) + '" class="sensitive-content-button-learn" style="padding: 10px 20px; background-color: white; color: #333; border: 1px solid #ccc; text-decoration: none; border-radius: 5px;">Learn More</a>' +
+			'<button class="sensitive-content-button" style="padding: 10px 20px; background-color: ' + buttonColor + '; color: white; border: none; border-radius: 5px; cursor: pointer;">' + mw.html.escape( buttonText ) + '</button>' +
+			'</div>' +
 			'</div>';
 	}
 

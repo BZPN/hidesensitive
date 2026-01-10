@@ -93,13 +93,16 @@ class Hooks
 	 */
 	public static function onImageBeforeProduceHTML( $parser, $title, $file, &$frameParams, &$handlerParams, &$time, &$res ) {
 		if ( self::isSensitive( $frameParams, $title ) ) {
-			if ( !self::shouldBypass( $parser->getUser(), $title ) ) {
+			$user = $parser ? $parser->getUser() : RequestContext::getMain()->getUser();
+			if ( !self::shouldBypass( $user, $title ) ) {
 				$handlerParams['sensitive'] = 'true';
 				// Also pass description if present
 				if ( isset( $frameParams['description'] ) ) {
 					$handlerParams['sensitive-description'] = $frameParams['description'];
 				}
-				$parser->getOutput()->addModules( 'ext.hideSensitive.core' );
+				if ( $parser ) {
+					$parser->getOutput()->addModules( 'ext.hideSensitive.core' );
+				}
 			}
 		}
 		return true;
@@ -152,11 +155,14 @@ class Hooks
 	public static function onResourceLoaderGetConfigVars( array &$vars, string $skin, Config $config ) {
 		try {
 			$buttonColor = $config->get( 'wgSensitiveButtonColor' );
+			$infoPage = $config->get( 'wgSensitiveInfoPage' );
 		} catch ( \ConfigException $e ) {
 			$buttonColor = '#36c';
+			$infoPage = 'Wikipedia:Sensitive_content';
 		}
 		$vars['wgSensitiveContent'] = [
 			'buttonColor' => $buttonColor,
+			'infoPage' => $infoPage,
 		];
 	}
 
@@ -185,32 +191,50 @@ class Hooks
 		return false;
 	}
 
+	private static function getDefaultDescription(): string {
+		$title = Title::newFromText( 'Sensitive-default-description', NS_MEDIAWIKI );
+		if ( !$title || !$title->exists() ) {
+			return 'This content has been marked as sensitive.';
+		}
+		$page = MediaWikiServices::getInstance()->getWikiPageFactory()->newFromTitle( $title );
+		$content = $page->getContent();
+		if ( $content ) {
+			return $content->getText();
+		}
+		return 'This content has been marked as sensitive.';
+	}
+
 	private static function getOverlayHTML( array $params ): string {
 		$config = RequestContext::getMain()->getConfig();
 
 		try {
-			$descDefault = $config->get( 'wgSensitiveDefaultDescription' );
+			$descDefault = self::getDefaultDescription();
 			$buttonText = $config->get( 'wgSensitiveButtonText' );
 			$buttonColor = $config->get( 'wgSensitiveButtonColor' );
+			$infoPage = $config->get( 'wgSensitiveInfoPage' );
 		} catch ( \ConfigException $e ) {
 			$descDefault = 'This content has been marked as sensitive.';
 			$buttonText = 'Show';
 			$buttonColor = '#36c';
+			$infoPage = 'Wikipedia:Sensitive_content';
 		}
 
-		$desc = htmlspecialchars( $params['description'] ?? $descDefault );
+		$desc = $params['description'] ?? $descDefault;
 		$buttonText = htmlspecialchars( $buttonText );
 		$buttonColor = htmlspecialchars( $buttonColor );
+		$learnMoreUrl = Title::newFromText( $infoPage )->getLocalURL();
 
 		$width = $params['width'] ?? '200';
 		$height = $params['height'] ?? '200';
 
-		return '<div class="sensitive-content-overlay-wrapper">' .
-			'<div class="sensitive-content-overlay" style="width: ' . $width . 'px; height: ' . $height . 'px;">' .
-			'<div class="sensitive-content-icon"></div>' .
-			'<div class="sensitive-content-text">' . $desc . '</div>' .
-			'<button class="sensitive-content-button" style="background-color:' . $buttonColor . ';">' . $buttonText . '</button>' .
-			'</div></div>';
+		return '<div class="sensitive-content-overlay-wrapper" style="background-color: #000; color: #fff; width: ' . $width . 'px; height: ' . $height . 'px; display: flex; flex-direction: column; justify-content: center; align-items: center; font-family: Arial, sans-serif;">' .
+			'<div class="sensitive-content-icon" style="font-size: 60px; text-decoration: line-through;">👁️</div>' .
+			'<div class="sensitive-content-text" style="margin: 20px 0; font-size: 16px;">' . htmlspecialchars( $desc ) . '</div>' .
+			'<div class="sensitive-content-buttons" style="display: flex; gap: 20px;">' .
+			'<a href="' . htmlspecialchars( $learnMoreUrl ) . '" class="sensitive-content-button-learn" style="padding: 10px 20px; background-color: white; color: #333; border: 1px solid #ccc; text-decoration: none; border-radius: 5px;">Learn More</a>' .
+			'<button class="sensitive-content-button" style="padding: 10px 20px; background-color: ' . $buttonColor . '; color: white; border: none; border-radius: 5px; cursor: pointer;">' . $buttonText . '</button>' .
+			'</div>' .
+			'</div>';
 	}
 }
 

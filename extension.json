@@ -36,6 +36,9 @@
 		},
 		"wgSensitiveAllowedNamespaces": {
 			"value": []
+		},
+		"wgSensitiveInfoPage": {
+			"value": "Wikipedia:Sensitive_content"
 		}
 	},
 	"Hooks": {
