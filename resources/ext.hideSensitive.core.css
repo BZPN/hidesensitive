@@ -2,70 +2,46 @@
 .sensitive-content-overlay-wrapper {
 	position: absolute;
 	inset: 0;
-	background-color: #000;
-	color: #fff;
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
 	align-items: center;
-	text-align: center;
-	font-family: Arial, sans-serif;
-	box-sizing: border-box;
-	padding: 0.5em;
-	overflow: hidden;
 	z-index: 20;
+	background-color: rgba(0,0,0,0.8);
+	color: #fff;
+	padding: 0.5em;
 }
 
 .sensitive-content-icon {
 	width: 3em;
 	height: 3em;
-	min-width: 2.5em;
-	min-height: 2.5em;
-	background-image: url( icon.png );
+	background-image: url(images/icon.png);
 	background-size: contain;
 	background-repeat: no-repeat;
 	background-position: center;
-	flex-shrink: 0;
+	margin-bottom: 0.5em;
 }
 
 .sensitive-content-text {
-	font-size: 1em;
-	margin-bottom: 1.2em;
 	max-width: 90%;
+	font-size: 1em;
+	margin-bottom: 1em;
+	text-align: center;
+	word-wrap: break-word;
 }
 
 .sensitive-content-buttons {
 	display: flex;
 	gap: 0.8em;
-	align-items: center; /* Ensure buttons are aligned vertically */
+	align-items: center;
 }
-
-.sensitive-content-button-learn,
-.sensitive-content-button-show {
-	padding: 0.6em 1em;
-	text-decoration: none;
-	border-radius: 5px;
-	font-size: 0.9em;
-	font-weight: 500;
-	border: 1px solid transparent;
-}
-
-.sensitive-content-button-learn {
-	background-color: #fff;
-	color: #333;
-	border-color: #ccc;
-}
-.sensitive-content-button-learn:hover {
-	background-color: #f0f0f0;
-}
-
 
 .sensitive-content-button-show {
 	background-color: #36c;
-	color: white;
-}
-.sensitive-content-button-show:hover {
-	background-color: #447ff5;
+	color: #fff;
+	padding: 0.6em 1em;
+	border-radius: 5px;
+	cursor: pointer;
 }
 
 

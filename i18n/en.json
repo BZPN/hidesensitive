@@ -6,8 +6,8 @@
 		]
 	},
 	"hidesensitive-desc": "Hides sensitive media behind a confirmation overlay.",
-	"sensitive-default-description": "This content has been marked as sensitive and may be disturbing.",
-	"sensitive-learn-more": "Learn More",
-	"sensitive-show-content": "Show Content"
+	"hidesensitive-default-description": "This content has been marked as sensitive and may be disturbing.",
+	"hidesensitive-learn-more": "Learn More",
+	"hidesensitive-button-text": "Show"
 }
 

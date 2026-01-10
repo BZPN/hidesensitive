@@ -27,23 +27,12 @@ class Hooks {
 		if ( !$title->inNamespace( NS_FILE ) || !$title->exists() ) {
 			return false;
 		}
-		// Check if the file page is in 'Category:Sensitive files'
-		$category = Title::newFromText( 'Sensitive files', NS_CATEGORY );
-		if ( !$category || !$category->exists() ) {
-			return false; // Category doesn't exist, so no files can be in it.
+		$file = MediaWikiServices::getInstance()->getRepoGroup()->findFile( $title );
+		if ( !$file ) {
+			return false;
 		}
-		$dbr = MediaWikiServices::getInstance()->getDBLoadBalancer()->getConnection( \DB_REPLICA );
-		$res = $dbr->selectField(
-			'categorylinks',
-			'cl_from',
-			[
-				'cl_from' => $title->getArticleID(),
-				'cl_to' => $category->getDBkey()
-			],
-			__METHOD__
-		);
-
-		return $res !== false;
+		$categories = $file->getCategories();
+		return in_array( 'Sensitive_files', $categories, true );
 	}
 
 	/**
@@ -72,16 +61,12 @@ class Hooks {
 			return;
 		}
 
-		$description = self::getDefaultDescription();
-
 		if ( !is_array( $linkAttribs ) ) {
 			$linkAttribs = [];
 		}
 		$linkAttribs['data-sensitive'] = 'true';
 		$linkAttribs['data-width'] = $thumbnail->getWidth();
 		$linkAttribs['data-height'] = $thumbnail->getHeight();
-		// Use description from parameter if available, otherwise default
-		$linkAttribs['data-description'] = $linkAttribs['data-description'] ?? $description;
 
 		// Removed: Do not mark <img> as sensitive
 
@@ -99,7 +84,6 @@ class Hooks {
 		$title = $imagepage->getTitle();
 		if ( self::isSensitiveFilePage( $title ) && !self::shouldBypass( RequestContext::getMain()->getUser(), $title ) ) {
 			$linkAttribs['data-sensitive'] = 'true';
-			$linkAttribs['data-description'] = self::getDefaultDescription();
 			RequestContext::getMain()->getOutput()->addModules( 'ext.hideSensitive.core' );
 		}
 	}
@@ -126,19 +110,6 @@ class Hooks {
 		];
 	}
 
-	private static function getDefaultDescription(): string {
-		$title = Title::newFromText( 'Sensitive-default-description', NS_MEDIAWIKI );
-		if ( !$title || !$title->exists() ) {
-			return wfMessage( 'sensitive-default-description' )->text();
-		}
-		$page = MediaWikiServices::getInstance()->getWikiPageFactory()->newFromTitle( $title );
-		$content = $page->getContent();
-		if ( $content ) {
-			return $content->getText();
-		}
-		return wfMessage( 'sensitive-default-description' )->text();
-	}
-
 	private static function shouldBypass( User $user, Title $title ): bool {
 		$config = RequestContext::getMain()->getConfig();
 
@@ -154,4 +125,3 @@ class Hooks {
 		return false;
 	}
 }
-

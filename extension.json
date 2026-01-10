@@ -40,9 +40,7 @@
 	},
 	"Hooks": {
 		"ThumbnailBeforeProduceHTML": "MediaWiki\\Extension\\HideSensitive\\Hooks::onThumbnailBeforeProduceHTML",
-		"ImageBeforeProduceHTML": "MediaWiki\\Extension\\HideSensitive\\Hooks::onImageBeforeProduceHTML",
-		"ImageOpenShowImageInlineBefore": "MediaWiki\\Extension\\HideSensitive\\Hooks::onImageOpenShowImageInlineBefore",
-		"BeforePageDisplay": "MediaWiki\\Extension\\HideSensitive\\Hooks::onBeforePageDisplay",
+		"ImagePageFindFile": "MediaWiki\\Extension\\HideSensitive\\Hooks::onImagePageFindFile",
 		"ResourceLoaderGetConfigVars": "MediaWiki\\Extension\\HideSensitive\\Hooks::onResourceLoaderGetConfigVars"
 	},
 	"ResourceModules": {
@@ -56,6 +54,7 @@
 			],
 			"messages": [
 				"hidesensitive-default-description",
+				"hidesensitive-learn-more",
 				"hidesensitive-button-text"
 			],
 			"dependencies": [
