@@ -62,9 +62,14 @@
 
 .sensitive-content-button-show {
 	all: unset;
-	display: inline-block;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 120px;
+	height: 36px;
 	padding: 8px 16px;
 	border-radius: 4px;
+	box-sizing: border-box;
 	background: var(--hs-button-color, #36c);
 	color: #fff;
 	font-weight: 600;
@@ -73,9 +78,14 @@
 
 .sensitive-content-button-learn {
 	all: unset;
-	display: inline-block;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 120px;
+	height: 36px;
 	padding: 8px 16px;
 	border-radius: 4px;
+	box-sizing: border-box;
 	background: #fff;
 	color: #000;
 	font-weight: 600;
@@ -93,8 +103,7 @@
 
 
 /* Hide the original media when overlay exists */
-.hs-processed img,
-.hs-processed video {
+.hs-processed .mw-file-element {
 	opacity: 0;
 }
 

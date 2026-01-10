@@ -51,7 +51,10 @@
 	 */
 	function applyOverlay( $marker ) {
 		const $container = $marker.closest( '.thumbinner, .gallerybox, .mw-file-element, figure' );
-		if ( !$container.length || $container.hasClass( 'hs-processed' ) ) {
+		if ( !$container.length ) {
+			return;
+		}
+		if ( $container.find('.sensitive-content-overlay-wrapper').length ) {
 			return;
 		}
 
@@ -60,9 +63,6 @@
 			overflow: 'hidden'
 		});
 		$container.addClass('hs-processed');
-
-		const $media = $container.find('img, video');
-		$media.css({ opacity: 0 });
 
 		const $overlay = createOverlay( $marker[0] );
 		$overlay.css({
@@ -84,7 +84,6 @@
 		$overlay.on('click', '.sensitive-content-button-show', function(e) {
 			e.preventDefault();
 			$overlay.remove();
-			$media.css({ opacity: 1 });
 			$container.removeClass('hs-processed');
 		});
 	}
@@ -144,10 +143,10 @@
 		} );
 	} );
 
-	observer.observe( document.body, {
-		childList: true,
-		subtree: true
-	} );
+	const target = document.querySelector('.mw-parser-output');
+	if ( target ) {
+		observer.observe(target, { childList: true, subtree: true });
+	}
 
 
 	// --- MultimediaViewer Integration ---
