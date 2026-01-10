@@ -45,7 +45,7 @@ class Hooks {
 		$map = [];
 		foreach ( $json as $entry ) {
 			if ( isset( $entry['file'] ) ) {
-				$map[ $entry['file'] ] = (string)( $entry['reason'] ?? '' );
+				$map[ $entry['file'] ] = trim($entry['reason'] ?? '') ?: null;
 			}
 		}
 
@@ -59,7 +59,7 @@ class Hooks {
 
 		$list = self::getSensitiveBlacklist();
 		return array_key_exists( $file->getName(), $list )
-			? $list[ $file->getName() ]
+			? ($list[ $file->getName() ] ?? null)
 			: false;
 	}
 
@@ -84,6 +84,7 @@ class Hooks {
 		}
 
 		$attribs['class'] = ( $attribs['class'] ?? '' ) . ' hs-container';
+		$attribs['style'] = ( $attribs['style'] ?? '' ) . ';opacity:0';
 		$attribs['data-hs-reason'] = $reason;
 		$attribs['data-hs'] = '1';
 
@@ -110,6 +111,20 @@ class Hooks {
 			'wgHideSensitiveImagePage' => true,
 			'wgHideSensitiveReason' => $reason
 		] );
+	}
+
+	public static function onParserMakeImageParams( $parser, &$params ) {
+		$file = $params['file'] ?? null;
+		if ( !$file ) return;
+
+		$reason = self::isBlacklistedFile( $file );
+		if ( $reason === false ) return;
+
+		$params['frame']['class'] .= ' hs-container';
+		$params['frame']['data-hs'] = '1';
+		$params['frame']['data-hs-reason'] = $reason;
+
+		RequestContext::getMain()->getOutput()->addModules( 'ext.hideSensitive.core' );
 	}
 
 

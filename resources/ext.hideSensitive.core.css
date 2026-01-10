@@ -1,4 +1,13 @@
 
+.hs-processed img,
+.hs-container img {
+	opacity: 0;
+}
+
+.hs-processed img {
+	visibility: hidden;
+}
+
 .sensitive-content-overlay-wrapper {
 	position: absolute;
 	inset: 0;
