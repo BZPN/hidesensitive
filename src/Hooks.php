@@ -13,52 +13,54 @@ use MediaWiki\Page\ImagePage;
 use MediaWiki\Revision\SlotRecord;
 
 class Hooks {
+	private static ?array $blacklist = null;
+
 	private static function getSensitiveBlacklist(): array {
-		static $cache = null;
-		if ( $cache !== null ) {
-			return $cache;
+		if ( self::$blacklist !== null ) {
+			return self::$blacklist;
 		}
 
 		$title = Title::newFromText( 'MediaWiki:SensitiveImagesBlacklist.json' );
 		if ( !$title || !$title->exists() ) {
-			return $cache = [];
+			return self::$blacklist = [];
 		}
 
 		$services = MediaWikiServices::getInstance();
 		$rev = $services->getRevisionLookup()->getRevisionByTitle( $title );
 
 		if ( !$rev ) {
-			return $cache = [];
+			return self::$blacklist = [];
 		}
 
 		$content = $rev->getContent( SlotRecord::MAIN );
 		if ( !$content ) {
-			return $cache = [];
+			return self::$blacklist = [];
 		}
 
 		$json = json_decode( $content->getText(), true );
 		if ( !is_array( $json ) ) {
-			return $cache = [];
+			return self::$blacklist = [];
 		}
 
 		$map = [];
 		foreach ( $json as $entry ) {
 			if ( isset( $entry['file'] ) ) {
-				$reason = trim( $entry['reason'] ?? '' );
-				$map[ $entry['file'] ] = $reason !== '' ? $reason : null;
+				$map[ $entry['file'] ] = (string)( $entry['reason'] ?? '' );
 			}
 		}
 
-		return $cache = $map;
+		return self::$blacklist = $map;
 	}
 
-	private static function isBlacklistedFile( $file ): ?string {
+	private static function isBlacklistedFile( $file ) {
 		if ( !$file || !method_exists( $file, 'getName' ) ) {
-			return null;
+			return false;
 		}
 
 		$list = self::getSensitiveBlacklist();
-		return $list[ $file->getName() ] ?? null;
+		return array_key_exists( $file->getName(), $list )
+			? $list[ $file->getName() ]
+			: false;
 	}
 
 	/**
@@ -73,7 +75,7 @@ class Hooks {
 		}
 
 		$reason = self::isBlacklistedFile( $file );
-		if ( $reason === null ) {
+		if ( $reason === false ) {
 			return;
 		}
 
@@ -96,7 +98,7 @@ class Hooks {
 		}
 
 		$reason = self::isBlacklistedFile( $file );
-		if ( $reason === null ) {
+		if ( $reason === false ) {
 			return;
 		}
 
