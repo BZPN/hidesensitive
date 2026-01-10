@@ -46,8 +46,10 @@
 
 .hs-learn-icon {
 	display: none;
-	width: 18px;
-	height: 18px;
+	width: 20px;
+	height: 20px;
+	position: relative;
+	left: -2px;
 }
 
 .hs-compact .hs-learn-text {
@@ -67,6 +69,22 @@
 	color: #fff;
 	font-weight: 600;
 	cursor: pointer;
+}
+
+.sensitive-content-button-learn {
+	all: unset;
+	display: inline-block;
+	padding: 8px 16px;
+	border-radius: 4px;
+	background: #fff;
+	color: #000;
+	font-weight: 600;
+	cursor: pointer;
+	text-decoration: none;
+}
+
+.sensitive-content-button-learn:hover {
+	background: #f0f0f0;
 }
 
 .sensitive-content-button-show:hover {
