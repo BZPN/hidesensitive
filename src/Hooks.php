@@ -83,11 +83,9 @@ class Hooks {
 			return;
 		}
 
-		if ( !is_array( $linkAttribs ) ) {
-			$linkAttribs = [];
-		}
-		$linkAttribs['data-sensitive'] = 'true';
-		$linkAttribs['data-description'] = $reason;
+		$attribs['class'] = ( $attribs['class'] ?? '' ) . ' hs-container';
+		$attribs['data-hs-reason'] = $reason;
+		$attribs['data-hs'] = '1';
 
 		RequestContext::getMain()->getOutput()->addModules( 'ext.hideSensitive.core' );
 	}
@@ -121,11 +119,11 @@ class Hooks {
 	public static function onResourceLoaderGetConfigVars( array &$vars ) {
 		$config = MediaWikiServices::getInstance()->getMainConfig();
 		try {
-			$infoPage = $config->get( 'wgSensitiveInfoPage' );
-			$buttonText = $config->get( 'wgSensitiveButtonText' );
-			$buttonColor = $config->get( 'wgSensitiveButtonColor' );
+			$infoPage = $config->get( 'SensitiveInfoPage' );
+			$buttonText = $config->get( 'SensitiveButtonText' );
+			$buttonColor = $config->get( 'SensitiveButtonColor' );
 		} catch ( \ConfigException $e ) {
-			$infoPage = 'Wikipedia:Sensitive_content';
+			$infoPage = 'Help:Sensitive_content';
 			$buttonText = 'Show';
 			$buttonColor = '#36c';
 		}
@@ -140,7 +138,7 @@ class Hooks {
 		$config = RequestContext::getMain()->getConfig();
 
 		try {
-			$allowedGroups = $config->get( 'wgSensitiveContentAllowedGroup' );
+			$allowedGroups = $config->get( 'SensitiveContentAllowedGroup' );
 			if ( is_array( $allowedGroups ) && !empty( array_intersect( $user->getEffectiveGroups(), $allowedGroups ) ) ) {
 				return true;
 			}

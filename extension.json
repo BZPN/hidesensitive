@@ -18,24 +18,18 @@
 	"AutoloadNamespaces": {
 		"MediaWiki\\Extension\\HideSensitive\\": "src/"
 	},
-	"Config": {
-		"wgSensitiveContentAllowedGroup": {
+	"config": {
+		"SensitiveContentAllowedGroup": {
 			"value": []
 		},
-		"wgSensitiveButtonText": {
+		"SensitiveButtonText": {
 			"value": "Show"
 		},
-		"wgSensitiveButtonColor": {
+		"SensitiveButtonColor": {
 			"value": "#36c"
 		},
-		"wgSensitiveAllowedUsers": {
-			"value": []
-		},
-		"wgSensitiveAllowedNamespaces": {
-			"value": []
-		},
-		"wgSensitiveInfoPage": {
-			"value": "Wikipedia:Sensitive_content"
+		"SensitiveInfoPage": {
+			"value": "Help:Sensitive_content"
 		}
 	},
 	"Hooks": {

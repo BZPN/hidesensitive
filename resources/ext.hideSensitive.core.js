@@ -2,19 +2,19 @@
 ( function ( mw, $ ) {
 	'use strict';
 
+	const cfg = mw.config.get( 'wgSensitiveContent' ) || {};
+	const infoPage = cfg.infoPage || 'Help:Sensitive_content';
+	const buttonText = cfg.buttonText || mw.msg( 'hidesensitive-button-text' );
+	const buttonColor = cfg.buttonColor || '#36c';
+	const learnMoreUrl = mw.util.getUrl( infoPage );
+
 	/**
 	 * Creates the HTML structure for the sensitive content overlay.
-	 * @param {HTMLElement} sourceElement The element that triggered the overlay.
-	 * @param {string} customDescription Optional custom description.
+	 * @param {string} reason The reason for hiding the content.
 	 * @return {jQuery} A jQuery object representing the overlay.
 	 */
-	function createOverlay( sourceElement, customDescription ) {
-		const config = mw.config.get( 'wgSensitiveContent' ) || {};
-		const description = customDescription || sourceElement?.dataset.description || mw.msg( 'hidesensitive-default-description' );
-		const infoPage = config.infoPage || 'Help:Sensitive_content';
-		const learnMoreUrl = mw.util.getUrl( infoPage );
-		const buttonText = mw.msg( 'hidesensitive-button-text' );
-		const buttonColor = config.buttonColor || '#36c';
+	function createOverlay( reason ) {
+		const description = reason || mw.msg( 'hidesensitive-default-description' );
 
 		const $overlay = $( '<div>' ).addClass( 'sensitive-content-overlay-wrapper' )
 			.append( $( '<div>' ).addClass( 'sensitive-content-icon' ) )
@@ -47,30 +47,26 @@
 	}
 
 	/**
-	 * Applies overlay to the container of the sensitive marker.
-	 * @param {jQuery} $marker The element with data-sensitive marker.
+	 * Attaches overlay to a container element.
+	 * @param {HTMLElement} container The container element.
+	 * @param {string} reason The reason for hiding.
 	 */
-	function applyOverlay( $marker ) {
-		const $container = $marker.closest( '.thumbinner, .gallerybox, .mw-file-element, figure' );
-		if ( !$container.length ) {
-			return;
-		}
-		if ( $container.find('.sensitive-content-overlay-wrapper').length ) {
+	function attachOverlay( container, reason ) {
+		const $container = $( container );
+
+		if ( $container.find( '.sensitive-content-overlay-wrapper' ).length ) {
 			return;
 		}
 
-		$container.css({
-			position: 'relative',
-			overflow: 'hidden'
-		});
-		$container.addClass('hs-processed');
+		$container.css( 'position', 'relative' );
+		$container.addClass( 'hs-processed' );
 
-		const $overlay = createOverlay( $marker[0] );
-		$overlay.css({
+		const $overlay = createOverlay( reason );
+		$overlay.css( {
 			position: 'absolute',
 			inset: 0,
 			zIndex: 20
-		});
+		} );
 
 		const width = $container.outerWidth();
 		const height = $container.outerHeight();
@@ -82,77 +78,28 @@
 
 		$container.append( $overlay );
 
-		$overlay.on('click', '.sensitive-content-button-show', function(e) {
+		$overlay.on( 'click', '.sensitive-content-button-show', function( e ) {
 			e.preventDefault();
 			$overlay.remove();
-			$container.removeClass('hs-processed');
-		});
-	}
-
-	function initThumbnails( container ) {
-		$( container ).find( '[data-sensitive="true"]' ).each( function () {
-			applyOverlay( $( this ) );
+			$container.removeClass( 'hs-processed' );
 		} );
 	}
 
-	// --- Hooks and Initialization ---
+	// --- Initialization ---
+
+	// Attach overlays to all containers marked by PHP
+	$( '.hs-container[data-hs]' ).each( function() {
+		const reason = this.dataset.hsReason;
+		attachOverlay( this, reason );
+	} );
 
 	// Special handling for File: pages
 	if ( mw.config.get( 'wgHideSensitiveImagePage' ) ) {
-		const $file = $( '.fullImageLink img, .fullImageLink video' ).first();
-		if ( $file.length ) {
-			const $container = $file.parent();
-			$container.css( 'position', 'relative' );
-
-			const description =
-				mw.config.get('wgHideSensitiveReason') ||
-				mw.msg('hidesensitive-default-description');
-
-			const $overlay = createOverlay( null, description );
-			$overlay.css( {
-				position: 'absolute',
-				inset: 0,
-				zIndex: 10
-			} );
-
-			$file.css( 'opacity', 0 );
-			$container.append( $overlay );
-
-			$overlay.on( 'click', '.sensitive-content-button-show', function ( e ) {
-				e.preventDefault();
-				$overlay.remove();
-				$file.css( 'opacity', 1 );
-			} );
+		const container = document.querySelector( '.fullImageLink' );
+		if ( container ) {
+			attachOverlay( container, mw.config.get( 'wgHideSensitiveReason' ) );
 		}
 	}
-
-	// For standard page loads and dynamic content
-	mw.hook( 'wikipage.content' ).add( function ( content ) {
-		initThumbnails( content );
-	} );
-
-	// Use MutationObserver to catch dynamically added content
-	const observer = new MutationObserver( function ( mutations ) {
-		mutations.forEach( function ( mutation ) {
-			if ( mutation.addedNodes.length ) {
-				$( mutation.addedNodes ).each( function () {
-					const $node = $( this );
-					if ( $node.is( '[data-sensitive="true"]' ) ) {
-						applyOverlay( $node );
-					}
-					$node.find( '[data-sensitive="true"]' ).each( function () {
-						applyOverlay( $( this ) );
-					} );
-				} );
-			}
-		} );
-	} );
-
-	const target = document.querySelector('.mw-parser-output');
-	if ( target ) {
-		observer.observe(target, { childList: true, subtree: true });
-	}
-
 
 	// --- MultimediaViewer Integration ---
 	let currentViewer = null;
@@ -161,11 +108,11 @@
 	mw.hook( 'mmv.viewer.before-opening' ).add( function ( viewer ) {
 		currentViewer = viewer;
 		// The source link can be the element itself or a parent anchor
-		const $sourceElement = viewer.element.closest( '[data-sensitive="true"]' );
-		if ( $sourceElement.length > 0 ) {
+		const sourceElement = viewer.element.closest( '.hs-container[data-hs]' );
+		if ( sourceElement ) {
 			// Mark as sensitive so we can act on it when the image loads
 			viewer.element.dataset.mmvIsSensitive = 'true';
-			currentSourceLink = $sourceElement[0];
+			currentSourceLink = sourceElement.dataset.hsReason;
 		} else {
 			viewer.element.dataset.mmvIsSensitive = 'false';
 			currentSourceLink = null;
@@ -182,7 +129,7 @@
 			return;
 		}
 
-		$viewerNode.css('opacity', '0');
+		$viewerNode.css( 'opacity', '0' );
 
 		const $overlay = createOverlay( currentSourceLink );
 
@@ -195,17 +142,16 @@
 
 		$viewerNode.parent().append( $overlay );
 
-		$overlay.on( 'click', '.sensitive-content-button-show', function(e) {
+		$overlay.on( 'click', '.sensitive-content-button-show', function( e ) {
 			e.preventDefault();
 			e.stopPropagation();
 			$overlay.remove();
-			$viewerNode.css('opacity', '1');
-			// Unset sensitive flag so it doesn't re-appear when navigating gallery
+			$viewerNode.css( 'opacity', '1' );
+			// Unset sensitive flag so it doesn't re--appear when navigating gallery
 			viewer.element.dataset.mmvIsSensitive = 'false';
-		});
-	});
+		} );
+	} );
 
 }( mw, jQuery ) );
-
 
 
