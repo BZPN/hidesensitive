@@ -113,13 +113,27 @@ class Hooks {
 	}
 
 	public static function onParserMakeImageParams( $parser, &$params ) {
+		if (
+			!isset( $params['frame'] ) ||
+			!is_array( $params['frame'] )
+		) {
+			return;
+		}
+
 		$file = $params['file'] ?? null;
-		if ( !$file ) return;
+		if ( !$file || !method_exists( $file, 'getName' ) ) {
+			return;
+		}
 
 		$reason = self::isBlacklistedFile( $file );
-		if ( $reason === false ) return;
+		if ( $reason === false ) {
+			return;
+		}
 
-		$params['frame']['class'] .= ' hs-container';
+		// NIE zakładamy, że class istnieje
+		$params['frame']['class'] =
+			( $params['frame']['class'] ?? '' ) . ' hs-container hs-hidden';
+
 		$params['frame']['data-hs'] = '1';
 		$params['frame']['data-hs-reason'] = $reason;
 

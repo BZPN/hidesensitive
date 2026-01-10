@@ -61,6 +61,15 @@
 		$container.css( 'position', 'relative' );
 		$container.addClass( 'hs-processed' );
 
+		// Block click-through before Show
+		$container.on( 'click.hs', function( e ) {
+			if ( $( e.target ).closest( '.sensitive-content-button-show, .sensitive-content-button-learn' ).length ) {
+				return;
+			}
+			e.preventDefault();
+			e.stopPropagation();
+		} );
+
 		const $overlay = createOverlay( reason );
 		$overlay.css( {
 			position: 'absolute',
@@ -85,6 +94,9 @@
 			e.preventDefault();
 			$overlay.remove();
 			$container.removeClass( 'hs-processed hs-hidden' );
+
+			// unblock link
+			$container.off( 'click.hs' );
 		} );
 	}
 

@@ -1,4 +1,8 @@
 
+.hs-container {
+	position: relative;
+}
+
 /* Obraz jest niewidoczny, ale zachowuje layout */
 .hs-hidden img {
 	visibility: hidden;
