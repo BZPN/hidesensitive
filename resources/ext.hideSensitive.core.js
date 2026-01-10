@@ -9,9 +9,10 @@
 	 */
 	function createOverlay( sourceElement ) {
 		const config = mw.config.get( 'wgSensitiveContent' ) || {};
+		const messages = mw.config.get( 'wgSensitiveMessages' ) || {};
 		const description = sourceElement && sourceElement.dataset.description
 			? sourceElement.dataset.description
-			: mw.msg( 'sensitive-default-description' );
+			: messages['sensitive-default-description'] || 'This content has been marked as sensitive.';
 		const infoPage = config.infoPage || 'Help:Sensitive_content';
 		const learnMoreUrl = mw.util.getUrl( infoPage );
 
@@ -23,11 +24,11 @@
 					.append(
 						$( '<a>' ).addClass( 'sensitive-content-button-learn' )
 							.attr( 'href', learnMoreUrl )
-							.text( mw.msg( 'sensitive-learn-more' ) )
+							.text( messages['sensitive-learn-more'] || 'Learn More' )
 					)
 					.append(
 						$( '<button>' ).addClass( 'sensitive-content-button-show' )
-							.text( mw.msg( 'sensitive-show-content' ) )
+							.text( messages['sensitive-show-content'] || 'Show Content' )
 					)
 			);
 		return $overlay;

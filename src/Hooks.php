@@ -27,17 +27,23 @@ class Hooks {
 		if ( !$title->inNamespace( NS_FILE ) || !$title->exists() ) {
 			return false;
 		}
-
-		// Check if the file page is in 'Category:Sensitive'
-		$categoryName = 'Category:Sensitive';
-		$categories = MediaWikiServices::getInstance()->getCategoryFinder()->getCategories( $title );
-		foreach ( $categories as $category ) {
-			if ( $category->getText() === $categoryName ) {
-				return true;
-			}
+		// Check if the file page is in 'Category:Sensitive files'
+		$category = Title::newFromText( 'Sensitive files', NS_CATEGORY );
+		if ( !$category || !$category->exists() ) {
+			return false; // Category doesn't exist, so no files can be in it.
 		}
+		$dbr = MediaWikiServices::getInstance()->getDBLoadBalancer()->getConnection( \DB_REPLICA );
+		$res = $dbr->selectField(
+			'categorylinks',
+			'cl_from',
+			[
+				'cl_from' => $title->getArticleID(),
+				'cl_to' => $category->getDBkey()
+			],
+			__METHOD__
+		);
 
-		return false;
+		return $res !== false;
 	}
 
 	/**
@@ -66,7 +72,7 @@ class Hooks {
 			return;
 		}
 
-		$description = wfMessage( 'sensitive-default-description' )->text();
+		$description = self::getDefaultDescription();
 
 		if ( !is_array( $linkAttribs ) ) {
 			$linkAttribs = [];
@@ -97,7 +103,7 @@ class Hooks {
 		$title = $imagepage->getTitle();
 		if ( self::isSensitiveFilePage( $title ) && !self::shouldBypass( RequestContext::getMain()->getUser(), $title ) ) {
 			$linkAttribs['data-sensitive'] = 'true';
-			$linkAttribs['data-description'] = wfMessage( 'sensitive-default-description' )->text();
+			$linkAttribs['data-description'] = self::getDefaultDescription();
 			RequestContext::getMain()->getOutput()->addModules( 'ext.hideSensitive.core' );
 		}
 	}
@@ -118,7 +124,7 @@ class Hooks {
 	public static function onResourceLoaderGetConfigVars( array &$vars ) {
 		$config = MediaWikiServices::getInstance()->getMainConfig();
 		$vars['wgSensitiveContent'] = [
-			'infoPage' => $config->get( 'SensitiveInfoPage' ),
+			'infoPage' => $config->get( 'wgSensitiveInfoPage' ),
 		];
 		// Pass i18n messages to JavaScript
 		$vars['wgSensitiveMessages'] = [
@@ -126,6 +132,19 @@ class Hooks {
 			'sensitive-learn-more' => wfMessage( 'sensitive-learn-more' )->text(),
 			'sensitive-show-content' => wfMessage( 'sensitive-show-content' )->text(),
 		];
+	}
+
+	private static function getDefaultDescription(): string {
+		$title = Title::newFromText( 'Sensitive-default-description', NS_MEDIAWIKI );
+		if ( !$title || !$title->exists() ) {
+			return wfMessage( 'sensitive-default-description' )->text();
+		}
+		$page = MediaWikiServices::getInstance()->getWikiPageFactory()->newFromTitle( $title );
+		$content = $page->getContent();
+		if ( $content ) {
+			return $content->getText();
+		}
+		return wfMessage( 'sensitive-default-description' )->text();
 	}
 
 	private static function shouldBypass( User $user, Title $title ): bool {
