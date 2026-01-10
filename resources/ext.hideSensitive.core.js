@@ -58,18 +58,6 @@
 			return;
 		}
 
-		$container.css( 'position', 'relative' );
-		$container.addClass( 'hs-processed' );
-
-		// Block click-through before Show
-		$container.on( 'click.hs', function( e ) {
-			if ( $( e.target ).closest( '.sensitive-content-button-show, .sensitive-content-button-learn' ).length ) {
-				return;
-			}
-			e.preventDefault();
-			e.stopPropagation();
-		} );
-
 		const $overlay = createOverlay( reason );
 		$overlay.css( {
 			position: 'absolute',
@@ -92,18 +80,19 @@
 
 		$overlay.on( 'click', '.sensitive-content-button-show', function( e ) {
 			e.preventDefault();
-			$overlay.remove();
-			$container.removeClass( 'hs-processed hs-hidden' );
 
-			// unblock link
-			$container.off( 'click.hs' );
+			$overlay.remove();
+			$container.removeClass( 'hs-container' );
+
+			$container.find( '.mw-file-element' )
+				.css( 'opacity', '1' );
 		} );
 	}
 
 	// --- Initialization ---
 
 	// Attach overlays to all containers marked by PHP
-	$( '.hs-container[data-hs]' ).each( function() {
+	$( 'a.hs-container[data-hs]' ).each( function() {
 		const reason = this.dataset.hsReason;
 		attachOverlay( this, reason );
 	} );
@@ -168,6 +157,4 @@
 	} );
 
 }( mw, jQuery ) );
-
-
 

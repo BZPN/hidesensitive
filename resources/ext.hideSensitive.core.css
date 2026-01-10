@@ -1,27 +1,19 @@
 
-.hs-container {
-	position: relative;
-}
-
-/* Obraz jest niewidoczny, ale zachowuje layout */
-.hs-hidden img {
-	visibility: hidden;
+/* NATYCHMIAST ukryj obrazek */
+a.hs-container .mw-file-element {
+	opacity: 0 !important;
 }
 
 .sensitive-content-overlay-wrapper {
 	position: absolute;
 	inset: 0;
-	display: flex;
-	flex-direction: column;
-	justify-content: center;
-	align-items: center;
-	text-align: center;
-	box-sizing: border-box;
 	z-index: 20;
-	background-color: #000;
-	opacity: 1 !important;
+	background: #000;
 	color: #fff;
-	padding: 12px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
 }
 
 .sensitive-content-icon {

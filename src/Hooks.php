@@ -79,90 +79,53 @@ class Hooks {
 			return;
 		}
 
-		if ( self::shouldBypass( RequestContext::getMain()->getUser(), $file->getTitle() ) ) {
+		if ( self::shouldBypass(
+			RequestContext::getMain()->getUser(),
+			$file->getTitle()
+		) ) {
 			return;
 		}
 
-		$attribs['class'] = ( $attribs['class'] ?? '' ) . ' hs-container hs-hidden';
-		$attribs['data-hs-reason'] = $reason;
-		$attribs['data-hs'] = '1';
+		$linkAttribs['class'] =
+			( $linkAttribs['class'] ?? '' ) . ' hs-container';
 
-		RequestContext::getMain()->getOutput()->addModules( 'ext.hideSensitive.core' );
+		$linkAttribs['data-hs'] = '1';
+		$linkAttribs['data-hs-reason'] = $reason;
+
+		RequestContext::getMain()
+			->getOutput()
+			->addModules( 'ext.hideSensitive.core' );
 	}
 
 	public static function onImagePageFindFile( ImagePage $imagePage, &$file ) {
-		if ( !$file || !method_exists( $file, 'getName' ) ) {
-			return;
-		}
+		if ( !$file ) return;
 
 		$reason = self::isBlacklistedFile( $file );
-		if ( $reason === false ) {
+		if ( $reason === false ) return;
+
+		if ( self::shouldBypass(
+			RequestContext::getMain()->getUser(),
+			$file->getTitle()
+		) ) {
 			return;
 		}
 
-		if ( self::shouldBypass( RequestContext::getMain()->getUser(), $file->getTitle() ) ) {
-			return;
-		}
+		$out = RequestContext::getMain()->getOutput();
 
-		RequestContext::getMain()->getOutput()->addModules( 'ext.hideSensitive.core' );
-
-		RequestContext::getMain()->getOutput()->addJsConfigVars( [
+		$out->addModules( 'ext.hideSensitive.core' );
+		$out->addJsConfigVars( [
 			'wgHideSensitiveImagePage' => true,
 			'wgHideSensitiveReason' => $reason
 		] );
 	}
 
-	public static function onParserMakeImageParams( $parser, &$params ) {
-		// ⛔ CRITICAL: params MUST be array
-		if ( !is_array( $params ) ) {
-			return;
-		}
-
-		if (
-			!isset( $params['frame'] ) ||
-			!is_array( $params['frame'] )
-		) {
-			return;
-		}
-
-		$file = $params['file'] ?? null;
-		if ( !$file || !method_exists( $file, 'getName' ) ) {
-			return;
-		}
-
-		$reason = self::isBlacklistedFile( $file );
-		if ( $reason === false ) {
-			return;
-		}
-
-		$params['frame']['class'] =
-			( $params['frame']['class'] ?? '' ) . ' hs-container hs-hidden';
-
-		$params['frame']['data-hs'] = '1';
-		$params['frame']['data-hs-reason'] = $reason;
-
-		RequestContext::getMain()->getOutput()->addModules( 'ext.hideSensitive.core' );
-	}
-
-
-	/**
-	 * @param array &$vars
-	 */
 	public static function onResourceLoaderGetConfigVars( array &$vars ) {
 		$config = MediaWikiServices::getInstance()->getMainConfig();
-		try {
-			$infoPage = $config->get( 'SensitiveInfoPage' );
-			$buttonText = $config->get( 'SensitiveButtonText' );
-			$buttonColor = $config->get( 'SensitiveButtonColor' );
-		} catch ( \ConfigException $e ) {
-			$infoPage = 'Help:Sensitive_content';
-			$buttonText = 'Show';
-			$buttonColor = '#36c';
-		}
+
 		$vars['wgSensitiveContent'] = [
-			'infoPage' => $infoPage,
-			'buttonText' => $buttonText,
-			'buttonColor' => $buttonColor,
+			'infoPage' => $config->get( 'wgSensitiveInfoPage' ),
+			'buttonText' => $config->get( 'wgSensitiveButtonText' ),
+			'buttonColor' => $config->get( 'wgSensitiveButtonColor' ),
 		];
 	}
 
@@ -186,3 +149,4 @@ class Hooks {
 		}
 	}
 }
+
