@@ -127,9 +127,11 @@
 
 		// Special handling for File: pages
 		if ( mw.config.get( 'wgHideSensitiveImagePage' ) ) {
-			const container = document.querySelector( '.fullImageLink' );
+			const link = document.querySelector( '.fullImageLink' );
+			const container = link?.querySelector( 'img, video' )?.closest( '.fullImageLink' );
 			if ( container ) {
 				container.classList.add( 'hs-container' );
+				container.style.display = 'inline-block';
 				attachOverlay( container, mw.config.get( 'wgHideSensitiveReason' ) );
 			}
 		}

@@ -22,6 +22,7 @@
 	background-color: #000;
 	color: #fff;
 	padding: 12px;
+	--hs-icon-invert: 1;
 }
 
 .sensitive-content-icon {
@@ -63,6 +64,7 @@
 	white-space: nowrap;
 	padding-left: 0.9em;
 	padding-right: 0.9em;
+	gap: 6px;
 }
 
 .hs-learn-icon {
@@ -84,21 +86,29 @@
 }
 
 .hs-learn-icon {
-	filter: invert(1);
+	filter: invert(var(--hs-icon-invert));
 }
 
 .sensitive-content-button-show {
-	all: unset;
+	appearance: none;
+	border: none;
+	background: none;
+	font: inherit;
+	line-height: normal;
 	border-radius: 4px;
 	background: var(--hs-button-color, #36c);
 	color: #fff;
 	font-weight: 600;
 	cursor: pointer;
-	padding: 0 14px; 
+	padding: 0 14px;
 }
 
 .sensitive-content-button-learn {
-	all: unset;
+	appearance: none;
+	border: none;
+	background: none;
+	font: inherit;
+	line-height: normal;
 	border-radius: 4px;
 	box-sizing: border-box;
 	background: #fff;
@@ -107,6 +117,7 @@
 	cursor: pointer;
 	text-decoration: none;
 	padding: 0 14px;
+	--hs-icon-invert: 0;
 }
 
 .sensitive-content-button-learn:hover {
@@ -117,13 +128,3 @@
 	filter: brightness(1.1);
 }
 
-
-/* Hide the original media when overlay exists */
-.hs-processed .mw-file-element {
-	opacity: 0;
-}
-
-/* Klikalność tylko na przyciskach */
-.sensitive-content-button-show {
-	cursor: pointer;
-}
