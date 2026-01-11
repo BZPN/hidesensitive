@@ -8,6 +8,18 @@
 	const buttonColor = cfg.buttonColor || '#36c';
 	const learnMoreUrl = mw.util.getUrl( infoPage );
 
+	function resolveContainer( marker ) {
+		return (
+			marker.closest( 'li.gallerybox' ) ||
+			marker.closest( 'div.thumb' ) ||
+			marker.closest( 'figure[typeof^="mw:File"]' ) ||
+			marker.closest( 'a.fullImageLink' ) ||
+			marker.closest( 'a.sdms-image-result, a.sdms-video-result' ) ||
+			marker.querySelector( 'img.mw-file-element, video.mw-file-element' ) ||
+			null
+		);
+	}
+
 	/**
 	 * Creates the HTML structure for the sensitive content overlay.
 	 * @param {string} reason The reason for hiding the content.
@@ -99,10 +111,18 @@
 	// --- Initialization ---
 
 	mw.hook( 'wikipage.content' ).add( function ( $content ) {
-		// Attach overlays to all containers marked by PHP
-		$content.find( 'a.hs-container[data-hs]' ).each( function() {
-			const reason = this.dataset.hsReason;
-			attachOverlay( this, reason );
+		$content.find( '[data-hs="1"]' ).each( function () {
+			const marker = this;
+			const reason = marker.dataset.hsReason;
+
+			const container = resolveContainer( marker );
+			if ( !container ) return;
+
+			container.classList.add( 'hs-container' );
+			container.style.position ||= 'relative';
+			container.style.overflow = 'hidden';
+
+			attachOverlay( container, reason );
 		} );
 
 		// Special handling for File: pages
@@ -113,44 +133,6 @@
 				attachOverlay( container, mw.config.get( 'wgHideSensitiveReason' ) );
 			}
 		}
-
-		// Scan category galleries for sensitive files
-		const blacklist = mw.config.get( 'wgSensitiveBlacklist' ) || {};
-		$content.find( '.gallerybox .thumbinner' ).each( function () {
-			const $inner = $( this );
-			const $img = $inner.find( 'img' );
-
-			if ( !$img.length ) {
-				return;
-			}
-
-			const fileName = mw.util.getParamValue( 'file', $img.attr( 'src' ) );
-			if ( !fileName || !blacklist[fileName] ) {
-				return;
-			}
-
-			$inner.addClass( 'hs-container' );
-			attachOverlay( $inner[0], blacklist[fileName] );
-		} );
-
-		// Scan all image links for sensitive files
-		$content.find( 'a.image, a.mw-file-description' ).each( function () {
-			const $a = $( this );
-			const $img = $a.find( 'img' );
-			if ( !$img.length ) return;
-
-			const src = $img.attr( 'src' );
-			if ( !src ) return;
-
-			const fileName = mw.util.getParamValue( 'file', src );
-			if ( !fileName || !blacklist[fileName] ) return;
-
-			$a.addClass( 'hs-container' );
-			$a.attr( 'data-hs', '1' );
-			$a.attr( 'data-hs-reason', blacklist[fileName] );
-
-			attachOverlay( $a[0], blacklist[fileName] );
-		} );
 	} );
 
 	// --- MultimediaViewer Integration ---
@@ -205,4 +187,3 @@
 	} );
 
 }( mw, jQuery ) );
-

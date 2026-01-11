@@ -87,11 +87,15 @@ class Hooks implements BeforePageDisplayHook {
 			return;
 		}
 
-		$attribs['class'] =
-			( $attribs['class'] ?? '' ) . ' hs-container';
+		if ( !is_array( $linkAttribs ) ) {
+			$linkAttribs = [];
+		}
 
-		$attribs['data-hs'] = '1';
-		$attribs['data-hs-reason'] = $reason;
+		$linkAttribs['class'] =
+			( $linkAttribs['class'] ?? '' ) . ' hs-marker';
+
+		$linkAttribs['data-hs'] = '1';
+		$linkAttribs['data-hs-reason'] = $reason;
 
 		$out = RequestContext::getMain()->getOutput();
 		$out->addModuleStyles( 'ext.hideSensitive.styles' );

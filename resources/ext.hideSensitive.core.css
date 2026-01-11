@@ -1,14 +1,12 @@
 
-.hs-container {
-	position: relative;
-	display: inline-block;
+.hs-container img,
+.hs-container video,
+.hs-container svg {
+	opacity: 0;
 }
 
-/* NATYCHMIAST ukryj obrazek */
-a.hs-container img,
-a.hs-container video,
-a.hs-container svg {
-	opacity: 0 !important;
+.hs-container {
+	position: relative;
 }
 
 .sensitive-content-overlay-wrapper {
