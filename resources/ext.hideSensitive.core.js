@@ -119,7 +119,9 @@
 			if ( !container ) return;
 
 			container.classList.add( 'hs-container' );
-			container.style.position ||= 'relative';
+			if ( !container.style.position ) {
+				container.style.position = 'relative';
+			}
 			container.style.overflow = 'hidden';
 
 			attachOverlay( container, reason );
@@ -130,9 +132,21 @@
 			const link = document.querySelector( '.fullImageLink' );
 			const container = link?.querySelector( 'img, video' )?.closest( '.fullImageLink' );
 			if ( container ) {
-				container.classList.add( 'hs-container' );
-				container.style.display = 'inline-block';
-				attachOverlay( container, mw.config.get( 'wgHideSensitiveReason' ) );
+				const img = container.querySelector( 'img, video' );
+				if ( !img ) return;
+
+				function apply() {
+					container.classList.add( 'hs-container' );
+					container.style.position = 'relative';
+					container.style.display = 'inline-block';
+					attachOverlay( container, mw.config.get( 'wgHideSensitiveReason' ) );
+				}
+
+				if ( img.complete ) {
+					apply();
+				} else {
+					img.addEventListener( 'load', apply, { once: true } );
+				}
 			}
 		}
 	} );

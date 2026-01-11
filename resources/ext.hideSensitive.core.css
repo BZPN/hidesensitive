@@ -71,6 +71,8 @@
 	display: none;
 	width: 18px;
 	height: 18px;
+	min-width: 18px;
+	min-height: 18px;
 }
 
 .hs-learn-text {
@@ -106,15 +108,17 @@
 .sensitive-content-button-learn {
 	appearance: none;
 	border: none;
-	background: none;
-	font: inherit;
-	line-height: normal;
-	border-radius: 4px;
-	box-sizing: border-box;
 	background: #fff;
 	color: #000;
-	font-weight: 600;
+	font: inherit;
+	line-height: 1;
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
 	cursor: pointer;
+	border-radius: 4px;
+	box-sizing: border-box;
+	font-weight: 600;
 	text-decoration: none;
 	padding: 0 14px;
 	--hs-icon-invert: 0;
