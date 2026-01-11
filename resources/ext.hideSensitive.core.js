@@ -11,12 +11,10 @@
 	function resolveContainer( marker ) {
 		return (
 			marker.closest( 'li.gallerybox' ) ||
-			marker.closest( 'div.thumb' ) ||
+			marker.closest( '.thumbinner' ) ||
 			marker.closest( 'figure[typeof^="mw:File"]' ) ||
-			marker.closest( 'a.fullImageLink' ) ||
-			marker.closest( 'a.sdms-image-result, a.sdms-video-result' ) ||
-			marker.querySelector( 'img.mw-file-element, video.mw-file-element' ) ||
-			null
+			marker.closest( 'a.hs-marker' ) ||
+			marker
 		);
 	}
 
@@ -129,24 +127,12 @@
 
 		// Special handling for File: pages
 		if ( mw.config.get( 'wgHideSensitiveImagePage' ) ) {
-			const link = document.querySelector( '.fullImageLink' );
-			const container = link?.querySelector( 'img, video' )?.closest( '.fullImageLink' );
-			if ( container ) {
-				const img = container.querySelector( 'img, video' );
-				if ( !img ) return;
-
-				function apply() {
-					container.classList.add( 'hs-container' );
-					container.style.position = 'relative';
-					container.style.display = 'inline-block';
-					attachOverlay( container, mw.config.get( 'wgHideSensitiveReason' ) );
-				}
-
-				if ( img.complete ) {
-					apply();
-				} else {
-					img.addEventListener( 'load', apply, { once: true } );
-				}
+			const marker = document.querySelector( 'a.hs-marker[data-hs="1"]' );
+			if ( marker ) {
+				marker.classList.add( 'hs-container' );
+				marker.style.position = 'relative';
+				marker.style.display = 'inline-block';
+				attachOverlay( marker, mw.config.get( 'wgHideSensitiveReason' ) );
 			}
 		}
 	} );
