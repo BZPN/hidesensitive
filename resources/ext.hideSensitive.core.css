@@ -1,7 +1,10 @@
 
 .hs-container img,
 .hs-container video,
-.hs-container svg {
+.hs-container svg,
+.hs-marker img,
+.hs-marker video,
+.hs-marker svg {
 	opacity: 0;
 }
 
