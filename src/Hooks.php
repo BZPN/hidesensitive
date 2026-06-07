@@ -188,15 +188,19 @@ class Hooks {
 
 	public static function onResourceLoaderGetConfigVars( array &$vars ) {
 		$config = MediaWikiServices::getInstance()->getMainConfig();
+		$context = RequestContext::getMain();
+
+		$msgButtonText = $context->msg( 'hidesensitive-button-text' );
+		$buttonText = $msgButtonText->exists() && !$msgButtonText->isDisabled()
+			? $msgButtonText->plain()
+			: ( $config->has( 'wgSensitiveButtonText' ) ? $config->get( 'wgSensitiveButtonText' ) : 'Show' );
 
 		$vars['wgSensitiveContent'] = [
 			'infoPage' => $config->has( 'wgSensitiveInfoPage' )
 				? $config->get( 'wgSensitiveInfoPage' )
 				: 'Help:Sensitive_content',
 
-			'buttonText' => $config->has( 'wgSensitiveButtonText' )
-				? $config->get( 'wgSensitiveButtonText' )
-				: 'Show',
+			'buttonText' => $buttonText,
 
 			'buttonColor' => $config->has( 'wgSensitiveButtonColor' )
 				? $config->get( 'wgSensitiveButtonColor' )
