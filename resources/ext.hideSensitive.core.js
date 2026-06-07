@@ -9,10 +9,12 @@
 	const learnMoreUrl = mw.util.getUrl( infoPage );
 
 	function resolveContainer( marker ) {
+		// Specific order: from most specific MediaWiki structure to generic
 		return (
 			marker.closest( 'li.gallerybox' ) ||
 			marker.closest( '.thumbinner' ) ||
 			marker.closest( 'figure[typeof^="mw:File"]' ) ||
+			marker.closest( '.mw-file-element' ) ||
 			marker.closest( 'a.hs-marker' ) ||
 			marker
 		);
@@ -25,14 +27,12 @@
 	 */
 	function createOverlay( reason ) {
 		const description = reason || mw.msg( 'hidesensitive-default-description' );
+		const assetsPath = mw.config.get( 'wgExtensionAssetsPath' ) + '/HideSensitive/resources/images';
 
 		const $overlay = $( '<div>' ).addClass( 'sensitive-content-overlay-wrapper' )
 			.append(
 				$( '<div>' ).addClass( 'sensitive-content-icon' )
-					.css( 'background-image',
-						'url(' + mw.config.get( 'wgExtensionAssetsPath' ) +
-						'/HideSensitive/resources/images/icon.png)'
-					)
+					.css( 'background-image', 'url(' + assetsPath + '/icon.png)' )
 			)
 			.append( $( '<div>' ).addClass( 'sensitive-content-text' ).text( description ) )
 			.append(
@@ -48,9 +48,7 @@
 							.append(
 								$( '<img>' )
 									.addClass( 'hs-learn-icon' )
-									.attr( 'src', mw.config.get( 'wgExtensionAssetsPath' ) +
-										'/HideSensitive/resources/images/info.png'
-									)
+									.attr( 'src', assetsPath + '/info.png' )
 							)
 					)
 					.append(
@@ -74,25 +72,27 @@
 			return;
 		}
 
-		const $overlay = createOverlay( reason );
-		$overlay.css( {
-			position: 'absolute',
-			inset: 0,
-			zIndex: 20
-		} );
+		// Ensure container has relative positioning
+		if ( $container.css( 'position' ) === 'static' ) {
+			$container.css( 'position', 'relative' );
+		}
 
+		const $overlay = createOverlay( reason );
 		$container.append( $overlay );
 
-		// wymuś layout – krytyczne
-		$container[0].getBoundingClientRect();
+		const updateSizeClasses = function() {
+			const width = $container.outerWidth();
+			const height = $container.outerHeight();
 
-		const width = $container.outerWidth();
-		const height = $container.outerHeight();
+			$overlay.removeClass( 'hs-compact hs-tiny' );
+			if ( width < 120 || height < 100 ) {
+				$overlay.addClass( 'hs-tiny' );
+			} else if ( width < 200 || height < 160 ) {
+				$overlay.addClass( 'hs-compact' );
+			}
+		};
 
-		// zdjęcia typu dowód, portret, małe thumbs
-		if ( width < 180 || height < 140 ) {
-			$overlay.addClass( 'hs-compact' );
-		}
+		updateSizeClasses();
 
 		$overlay.on( 'click', '.sensitive-content-button-show', function( e ) {
 			e.preventDefault();
@@ -100,16 +100,17 @@
 
 			$overlay.remove();
 			$container.removeClass( 'hs-container' );
+			$container.find( '.hs-marker' ).removeClass( 'hs-marker' );
 
 			$container.find( 'img, video, svg' )
-				.css( 'opacity', '1' );
+				.css( 'opacity', '' );
 		} );
 	}
 
 	// --- Initialization ---
 
-	mw.hook( 'wikipage.content' ).add( function ( $content ) {
-		$content.find( '[data-hs="1"]' ).each( function () {
+	function init( $content ) {
+		$content.find( '[data-hs="1"], .hs-marker' ).each( function () {
 			const marker = this;
 			const reason = marker.dataset.hsReason;
 
@@ -117,41 +118,27 @@
 			if ( !container ) return;
 
 			container.classList.add( 'hs-container' );
-			if ( !container.style.position ) {
-				container.style.position = 'relative';
-			}
-			container.style.overflow = 'hidden';
-
 			attachOverlay( container, reason );
 		} );
 
 		// Special handling for File: pages
 		if ( mw.config.get( 'wgHideSensitiveImagePage' ) ) {
-			const marker = document.querySelector( 'a.hs-marker[data-hs="1"]' );
-			if ( marker ) {
-				marker.classList.add( 'hs-container' );
-				marker.style.position = 'relative';
-				marker.style.display = 'inline-block';
-				attachOverlay( marker, mw.config.get( 'wgHideSensitiveReason' ) );
+			const $mainImg = $( '.fullImageLink' );
+			if ( $mainImg.length ) {
+				$mainImg.addClass( 'hs-container' );
+				attachOverlay( $mainImg[0], mw.config.get( 'wgHideSensitiveReason' ) );
 			}
 		}
-	} );
+	}
+
+	mw.hook( 'wikipage.content' ).add( init );
 
 	// --- MultimediaViewer Integration ---
-	let currentViewer = null;
-	let currentSourceLink = null;
-
 	mw.hook( 'mmv.viewer.before-opening' ).add( function ( viewer ) {
-		currentViewer = viewer;
-		// The source link can be the element itself or a parent anchor
-		const sourceElement = viewer.element.closest( '.hs-container[data-hs]' );
+		const sourceElement = viewer.element.closest( '.hs-container' );
 		if ( sourceElement ) {
-			// Mark as sensitive so we can act on it when the image loads
 			viewer.element.dataset.mmvIsSensitive = 'true';
-			currentSourceLink = sourceElement.dataset.hsReason;
-		} else {
-			viewer.element.dataset.mmvIsSensitive = 'false';
-			currentSourceLink = null;
+			viewer.element.dataset.mmvReason = $( sourceElement ).find( '[data-hs-reason]' ).addBack( '[data-hs-reason]' ).first().data( 'hs-reason' ) || '';
 		}
 	} );
 
@@ -161,29 +148,28 @@
 		}
 
 		const $viewerNode = $( viewer.getMediaNode() );
-		if ( !$viewerNode || $viewerNode.parent().find( '.sensitive-content-overlay-wrapper' ).length > 0 ) {
+		const $container = $viewerNode.parent();
+
+		if ( !$viewerNode.length || $container.find( '.sensitive-content-overlay-wrapper' ).length > 0 ) {
 			return;
 		}
 
 		$viewerNode.css( 'opacity', '0' );
+		const $overlay = createOverlay( viewer.element.dataset.mmvReason );
 
-		const $overlay = createOverlay( currentSourceLink );
-
-		// Special styling for MMV
 		$overlay.css( {
 			position: 'absolute',
 			inset: 0,
 			zIndex: 1000
 		} );
 
-		$viewerNode.parent().append( $overlay );
+		$container.append( $overlay );
 
 		$overlay.on( 'click', '.sensitive-content-button-show', function( e ) {
 			e.preventDefault();
 			e.stopPropagation();
 			$overlay.remove();
 			$viewerNode.css( 'opacity', '1' );
-			// Unset sensitive flag so it doesn't re--appear when navigating gallery
 			viewer.element.dataset.mmvIsSensitive = 'false';
 		} );
 	} );
