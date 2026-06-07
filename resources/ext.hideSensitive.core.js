@@ -4,7 +4,15 @@
 
 	const cfg = mw.config.get( 'wgSensitiveContent' ) || {};
 	const infoPage = cfg.infoPage || 'Help:Sensitive_content';
-	const buttonText = cfg.buttonText || mw.msg( 'hidesensitive-button-text' );
+
+	// Prioritize System Message > $wgSensitiveButtonText > 'Show'
+	let buttonText = 'Show';
+	if ( cfg.hasOnWikiButtonText ) {
+		buttonText = mw.msg( 'hidesensitive-button-text' );
+	} else if ( cfg.buttonText ) {
+		buttonText = cfg.buttonText;
+	}
+
 	const buttonColor = cfg.buttonColor || '#36c';
 	const learnMoreUrl = mw.util.getUrl( infoPage );
 
@@ -85,9 +93,9 @@
 			const height = $container.outerHeight();
 
 			$overlay.removeClass( 'hs-compact hs-tiny' );
-			if ( width < 120 || height < 100 ) {
+			if ( ( width > 0 && width < 120 ) || ( height > 0 && height < 100 ) ) {
 				$overlay.addClass( 'hs-tiny' );
-			} else if ( width < 200 || height < 160 ) {
+			} else if ( ( width > 0 && width < 200 ) || ( height > 0 && height < 160 ) ) {
 				$overlay.addClass( 'hs-compact' );
 			}
 		};
@@ -139,6 +147,8 @@
 		if ( sourceElement ) {
 			viewer.element.dataset.mmvIsSensitive = 'true';
 			viewer.element.dataset.mmvReason = $( sourceElement ).find( '[data-hs-reason]' ).addBack( '[data-hs-reason]' ).first().data( 'hs-reason' ) || '';
+		} else {
+			viewer.element.dataset.mmvIsSensitive = 'false';
 		}
 	} );
 
