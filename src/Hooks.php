@@ -232,12 +232,29 @@ class Hooks {
 
 	/**
 	 * @param Title $title
+	 * @param mixed $fileOrOffsets
+	 * @param mixed &$offsetsOrParams
+	 * @param mixed &$paramsOrParser
+	 * @param mixed $parser
+	 * @return bool
+	 */
+	public static function onParserMakeImageParams( $title, $fileOrOffsets, &$offsetsOrParams, &$paramsOrParser = null, $parser = null ) {
+		if ( is_array( $fileOrOffsets ) ) {
+			// Old signature: $title, $magicWordOffsets, &$params, $parser
+			return self::realParserMakeImageParams( $fileOrOffsets, $offsetsOrParams, $paramsOrParser );
+		} else {
+			// New signature: $title, $file, $magicWordOffsets, &$params, $parser
+			return self::realParserMakeImageParams( $offsetsOrParams, $paramsOrParser, $parser );
+		}
+	}
+
+	/**
 	 * @param array $magicWordOffsets
 	 * @param array &$params
 	 * @param \Parser $parser
 	 * @return bool
 	 */
-	public static function onParserMakeImageParams( $title, $magicWordOffsets, &$params, $parser ) {
+	private static function realParserMakeImageParams( $magicWordOffsets, &$params, $parser ) {
 		if ( isset( $magicWordOffsets['sensitive'] ) ) {
 			$params['handler']['sensitive'] = 'true';
 		}
