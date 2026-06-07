@@ -11,9 +11,9 @@ use Skin;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Page\ImagePage;
 use MediaWiki\Revision\SlotRecord;
-use MediaWiki\Hook\BeforePageDisplayHook;
+use Closure;
 
-class Hooks implements BeforePageDisplayHook {
+class Hooks {
 	private static ?array $blacklist = null;
 
 	private static function getSensitiveBlacklist(): array {
@@ -46,7 +46,8 @@ class Hooks implements BeforePageDisplayHook {
 		$map = [];
 		foreach ( $json as $entry ) {
 			if ( isset( $entry['file'] ) ) {
-				$map[ $entry['file'] ] = trim($entry['reason'] ?? '') ?: null;
+				$name = str_replace( ' ', '_', $entry['file'] );
+				$map[$name] = trim( $entry['reason'] ?? '' ) ?: null;
 			}
 		}
 
@@ -59,8 +60,9 @@ class Hooks implements BeforePageDisplayHook {
 		}
 
 		$list = self::getSensitiveBlacklist();
-		return array_key_exists( $file->getName(), $list )
-			? ($list[ $file->getName() ] ?? null)
+		$name = str_replace( ' ', '_', $file->getName() );
+		return array_key_exists( $name, $list )
+			? ( $list[$name] ?? null )
 			: false;
 	}
 
@@ -95,18 +97,70 @@ class Hooks implements BeforePageDisplayHook {
 			( $linkAttribs['class'] ?? '' ) . ' hs-marker';
 
 		$linkAttribs['data-hs'] = '1';
-		$linkAttribs['data-hs-reason'] = $reason;
+		if ( $reason ) {
+			$linkAttribs['data-hs-reason'] = $reason;
+		}
+	}
 
-		$out = RequestContext::getMain()->getOutput();
-		$out->addModuleStyles( 'ext.hideSensitive.styles' );
-		$out->addModules( 'ext.hideSensitive.core' );
+	/**
+	 * @param \Linker $linker
+	 * @param \Title $title
+	 * @param \File $file
+	 * @param array &$frameParams
+	 * @param array &$handlerParams
+	 * @param array &$attribs
+	 * @param array &$customAugmentLink
+	 * @param array &$linkAttribs
+	 * @param mixed &$res
+	 */
+	public static function onImageBeforeProduceHTML( $linker, $title, $file, &$frameParams, &$handlerParams, &$attribs, &$customAugmentLink, &$linkAttribs, &$res ) {
+		if ( !$file ) {
+			return;
+		}
+
+		$reason = self::isBlacklistedFile( $file );
+		$isSensitive = $reason !== false;
+
+		if ( isset( $handlerParams['sensitive'] ) && $handlerParams['sensitive'] === 'true' ) {
+			$isSensitive = true;
+			if ( isset( $handlerParams['hs_description'] ) && $handlerParams['hs_description'] ) {
+				$reason = $handlerParams['hs_description'];
+			}
+		}
+
+		if ( !$isSensitive ) {
+			return;
+		}
+
+		if ( self::shouldBypass(
+			RequestContext::getMain()->getUser(),
+			$file->getTitle()
+		) ) {
+			return;
+		}
+
+		if ( !is_array( $linkAttribs ) ) {
+			$linkAttribs = [];
+		}
+
+		$linkAttribs['class'] =
+			( $linkAttribs['class'] ?? '' ) . ' hs-marker';
+
+		$linkAttribs['data-hs'] = '1';
+		if ( $reason ) {
+			$linkAttribs['data-hs-reason'] = $reason;
+		}
 	}
 
 	public static function onImagePageFindFile( ImagePage $imagePage, &$file ) {
-		if ( !$file ) return;
+		if ( !$file ) {
+			return;
+		}
 
 		$reason = self::isBlacklistedFile( $file );
-		if ( $reason === false ) return;
+		if ( $reason === false ) {
+			return;
+		}
 
 		if ( self::shouldBypass(
 			RequestContext::getMain()->getUser(),
@@ -117,14 +171,17 @@ class Hooks implements BeforePageDisplayHook {
 
 		$out = RequestContext::getMain()->getOutput();
 
-		$out->addModules( 'ext.hideSensitive.core' );
 		$out->addJsConfigVars( [
 			'wgHideSensitiveImagePage' => true,
 			'wgHideSensitiveReason' => $reason
 		] );
 	}
 
-	public function onBeforePageDisplay( $out, $skin ): void {
+	/**
+	 * @param OutputPage $out
+	 * @param Skin $skin
+	 */
+	public static function onBeforePageDisplay( $out, $skin ): void {
 		$out->addModuleStyles( 'ext.hideSensitive.styles' );
 		$out->addModules( 'ext.hideSensitive.core' );
 	}
@@ -155,6 +212,9 @@ class Hooks implements BeforePageDisplayHook {
 		$config = $services->getMainConfig();
 
 		try {
+			if ( !$config->has( 'wgSensitiveContentAllowedGroup' ) ) {
+				return false;
+			}
 			$allowedGroups = $config->get( 'wgSensitiveContentAllowedGroup' );
 			if ( !is_array( $allowedGroups ) || $allowedGroups === [] ) {
 				return false;
@@ -169,5 +229,36 @@ class Hooks implements BeforePageDisplayHook {
 			return false;
 		}
 	}
-}
 
+	/**
+	 * @param Title $title
+	 * @param array $magicWordOffsets
+	 * @param array &$params
+	 * @param \Parser $parser
+	 * @return bool
+	 */
+	public static function onParserMakeImageParams( $title, $magicWordOffsets, &$params, $parser ) {
+		if ( isset( $magicWordOffsets['sensitive'] ) ) {
+			$params['handler']['sensitive'] = 'true';
+		}
+
+		if ( isset( $magicWordOffsets['hs_description'] ) ) {
+			$descOffsets = $magicWordOffsets['hs_description'];
+			if ( is_array( $descOffsets ) && count( $descOffsets ) > 0 ) {
+				$getText = Closure::bind( function( $p ) {
+					return $p->mText;
+				}, null, $parser );
+
+				$fullText = $getText( $parser );
+				foreach ( $descOffsets as $offset ) {
+					$paramText = substr( $fullText, $offset );
+					if ( preg_match( '/^[^|\]]+\s*=\s*([^|\]]+)/i', $paramText, $matches ) ) {
+						$params['handler']['hs_description'] = trim( $matches[1] );
+						break;
+					}
+				}
+			}
+		}
+		return true;
+	}
+}

@@ -101,7 +101,7 @@
 			$overlay.remove();
 			$container.removeClass( 'hs-container' );
 
-			$container.children( 'img, video, svg' )
+			$container.find( 'img, video, svg' )
 				.css( 'opacity', '1' );
 		} );
 	}

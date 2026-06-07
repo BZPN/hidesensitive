@@ -22,7 +22,23 @@
 		"ThumbnailBeforeProduceHTML": "MediaWiki\\Extension\\HideSensitive\\Hooks::onThumbnailBeforeProduceHTML",
 		"ImagePageFindFile": "MediaWiki\\Extension\\HideSensitive\\Hooks::onImagePageFindFile",
 		"BeforePageDisplay": "MediaWiki\\Extension\\HideSensitive\\Hooks::onBeforePageDisplay",
-		"ResourceLoaderGetConfigVars": "MediaWiki\\Extension\\HideSensitive\\Hooks::onResourceLoaderGetConfigVars"
+		"ResourceLoaderGetConfigVars": "MediaWiki\\Extension\\HideSensitive\\Hooks::onResourceLoaderGetConfigVars",
+		"ParserMakeImageParams": "MediaWiki\\Extension\\HideSensitive\\Hooks::onParserMakeImageParams",
+		"ImageBeforeProduceHTML": "MediaWiki\\Extension\\HideSensitive\\Hooks::onImageBeforeProduceHTML"
+	},
+	"config": {
+		"SensitiveInfoPage": {
+			"value": "Help:Sensitive_content"
+		},
+		"SensitiveButtonText": {
+			"value": "Show"
+		},
+		"SensitiveButtonColor": {
+			"value": "#36c"
+		},
+		"SensitiveContentAllowedGroup": {
+			"value": []
+		}
 	},
 	"ResourceModules": {
 		"ext.hideSensitive.styles": {
@@ -51,5 +67,11 @@
 	"ResourceFileModulePaths": {
 		"localBasePath": "",
 		"remoteExtPath": "HideSensitive"
+	},
+	"MagicWords": {
+		"en": {
+			"sensitive": [ 0, "sensitive" ],
+			"hs_description": [ 0, "description" ]
+		}
 	}
 }
