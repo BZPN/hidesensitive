@@ -68,10 +68,14 @@
 		"localBasePath": "",
 		"remoteExtPath": "HideSensitive"
 	},
-	"MagicWords": {
-		"en": {
-			"sensitive": [ 0, "sensitive" ],
-			"hs_description": [ 0, "description" ]
+	"MagicWords": [
+		{
+			"name": "sensitive",
+			"aliases": [ "sensitive" ]
+		},
+		{
+			"name": "hs_description",
+			"aliases": [ "description" ]
 		}
-	}
+	]
 }

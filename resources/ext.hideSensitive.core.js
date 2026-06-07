@@ -111,7 +111,12 @@
 			$container.find( '.hs-marker' ).removeClass( 'hs-marker' );
 
 			$container.find( 'img, video, svg' )
-				.css( 'opacity', '' );
+				.css( 'opacity', '1' );
+
+			// Fix for File: pages
+			if ( $container.hasClass( 'fullImageLink' ) ) {
+				$container.find( 'img' ).css( 'opacity', '1' );
+			}
 		} );
 	}
 
