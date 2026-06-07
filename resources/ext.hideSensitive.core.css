@@ -48,7 +48,8 @@ figure.hs-container {
 	background-position: center;
 	margin-bottom: 12px;
 	flex-shrink: 0;
-	filter: invert(var(--hs-icon-invert));
+	/* Force keep the original icon color (white) and prevent theme filters */
+	filter: none !important;
 }
 
 .sensitive-content-text {
