@@ -152,31 +152,6 @@ class Hooks {
 		}
 	}
 
-	public static function onImagePageFindFile( ImagePage $imagePage, &$file ) {
-		if ( !$file ) {
-			return;
-		}
-
-		$reason = self::isBlacklistedFile( $file );
-		if ( $reason === false ) {
-			return;
-		}
-
-		if ( self::shouldBypass(
-			RequestContext::getMain()->getUser(),
-			$file->getTitle()
-		) ) {
-			return;
-		}
-
-		$out = RequestContext::getMain()->getOutput();
-
-		$out->addJsConfigVars( [
-			'wgHideSensitiveImagePage' => true,
-			'wgHideSensitiveReason' => $reason
-		] );
-	}
-
 	/**
 	 * @param OutputPage $out
 	 * @param Skin $skin
@@ -184,6 +159,23 @@ class Hooks {
 	public static function onBeforePageDisplay( $out, $skin ): void {
 		$out->addModuleStyles( 'ext.hideSensitive.styles' );
 		$out->addModules( 'ext.hideSensitive.core' );
+
+		// Move ImagePage sensitivity logic here to avoid session/skin issues
+		if ( $out->getContext()->getTitle()->getNamespace() === NS_FILE ) {
+			$imagePage = $out->getContext()->getWikiPage();
+			if ( $imagePage instanceof ImagePage ) {
+				$file = $imagePage->getFile();
+				if ( $file && $file->exists() ) {
+					$reason = self::isBlacklistedFile( $file );
+					if ( $reason !== false && !self::shouldBypass( $out->getUser(), $file->getTitle() ) ) {
+						$out->addJsConfigVars( [
+							'wgHideSensitiveImagePage' => true,
+							'wgHideSensitiveReason' => $reason
+						] );
+					}
+				}
+			}
+		}
 	}
 
 	public static function onResourceLoaderGetConfigVars( array &$vars ) {
