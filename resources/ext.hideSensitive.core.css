@@ -115,7 +115,7 @@ figure.hs-container {
 	display: none;
 	width: 16px;
 	height: 16px;
-	filter: none;
+	filter: brightness(0); /* Make it black for the light learn button */
 }
 
 /* Compact mode for small thumbnails */
@@ -173,4 +173,9 @@ figure.hs-container {
 /* MultimediaViewer adjustments */
 .mw-mmv-filepage-buttons .sensitive-content-overlay-wrapper {
 	z-index: 1000;
+}
+
+.fullImageLink {
+	display: inline-block;
+	position: relative;
 }
